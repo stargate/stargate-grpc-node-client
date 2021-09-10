@@ -7,8 +7,7 @@
     "test": "jest",
     "compile": "rm -rf lib && tsc",
     "gen": "grpc_tools_node_protoc --proto_path=proto --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts --js_out=import_style=commonjs,binary:src/proto --ts_out=src/proto proto/query.proto proto/stargate.proto",
-    "gen-greeter": "grpc_tools_node_protoc --proto_path=proto --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts --ts_out=src/proto proto/greeter.proto",
-    "gen-grpc-types": "proto-loader-gen-types --longs=String --enums=String --defaults --oneofs --grpcLib=@grpc/grpc-js --outDir=src/proto/ proto/*.proto"
+    "gen-greeter": "grpc_tools_node_protoc --proto_path=proto --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts --ts_out=src/proto proto/greeter.proto"
   },
   "author": "",
   "license": "ISC",
