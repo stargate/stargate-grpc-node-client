@@ -251,7 +251,7 @@
      TINYINT = 0x14;
    }
  
-   message Map {
+   message MapFixMe {
      TypeSpec key = 1;
      TypeSpec value = 2;
    }
@@ -276,7 +276,7 @@
  
    oneof spec {
      Basic basic = 1;
-     Map map = 2;
+     MapFixMe map = 2;
      List list = 3;
      Set set = 4;
      Udt udt = 5;
