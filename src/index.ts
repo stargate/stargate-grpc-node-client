@@ -1,5 +1,5 @@
 export {add} from "./foo/foo";
 
-import { sendMessage } from "./client/client";
+import { sendMessage, sendStargateMessage } from "./client/client";
 
-sendMessage();
+sendStargateMessage();
