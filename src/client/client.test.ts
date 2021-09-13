@@ -1,7 +1,9 @@
 import {sendQuery} from "./client";
+import {getToken} from "../auth/auth";
 import {GenericContainer, StartedTestContainer} from "testcontainers";
 
 describe('Stargate gRPC client', ()=> {
+    // TODO: make sure this is set only for this test suite
     jest.setTimeout(40000);
     describe('sendQuery', () => {
         let container: StartedTestContainer;
@@ -13,6 +15,7 @@ describe('Stargate gRPC client', ()=> {
                 .withEnv("DEVELOPER_MODE", "true")
                 .withEnv("ENABLE_AUTH", "true")
                 .withExposedPorts(8081, 8084, 8090)
+                // TODO: set a waiting strategy
                 .start();
         });
 
@@ -20,8 +23,10 @@ describe('Stargate gRPC client', ()=> {
             await container.stop();
         });
 
-        it("is a test", () => {
-            expect(true).toBe(true);
+        it("supports basic queries", async () => {
+            const authEndpoint = `http://${container.getHost()}:${container.getMappedPort(8081)}`;
+            const token = await getToken(authEndpoint);
+            expect(token).not.toBeUndefined();
         })
     })
 })

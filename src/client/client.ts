@@ -17,16 +17,14 @@ import {stargate as stargateQuery} from "../proto/query";
 //     interceptor_providers?: InterceptorProvider[];
 // }
 
-export const sendQuery = async () => {
+export const sendQuery = async (query: stargateQuery.Query, token: string) => {
     const stargateClient = new stargate.StargateClient("localhost:8090", grpc.credentials.createInsecure());
-
-    const message = new stargateQuery.Query({cql: 'describe tables;'})
 
     const metadata = new grpc.Metadata();
 
-    metadata.set('x-cassandra-token', '62d785e6-935c-40c8-8f7e-8aead4557f7f');
+    metadata.set('x-cassandra-token', token);
 
-    stargateClient.ExecuteQuery(message, metadata, {}, (error, value) => {
+    stargateClient.ExecuteQuery(query, metadata, {}, (error, value) => {
         if (error) {
             console.dir(error);
         }
