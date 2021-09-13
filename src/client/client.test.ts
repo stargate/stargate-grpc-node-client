@@ -1,5 +1,5 @@
 import {sendQuery} from "./client";
-import {getToken} from "../auth/auth";
+import {createTableBasedAuthClient} from "../auth/auth";
 import {GenericContainer, StartedTestContainer} from "testcontainers";
 
 describe('Stargate gRPC client', ()=> {
@@ -24,8 +24,9 @@ describe('Stargate gRPC client', ()=> {
         });
 
         it("supports basic queries", async () => {
-            const authEndpoint = `http://${container.getHost()}:${container.getMappedPort(8081)}`;
-            const token = await getToken(authEndpoint);
+            const authEndpoint = `http://${container.getHost()}:${container.getMappedPort(8081)}/v1/auth`;
+            const authClient = createTableBasedAuthClient(authEndpoint, 'cassandra', 'cassandra');
+            const token = await authClient.getAuthToken();
             expect(token).not.toBeUndefined();
         })
     })
