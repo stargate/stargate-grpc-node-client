@@ -17,7 +17,7 @@ import {stargate as stargateQuery} from "../proto/query";
 //     interceptor_providers?: InterceptorProvider[];
 // }
 
-export const sendStargateMessage = async () => {
+export const sendQuery = async () => {
     const stargateClient = new stargate.StargateClient("localhost:8090", grpc.credentials.createInsecure());
 
     const message = new stargateQuery.Query({cql: 'describe tables;'})
