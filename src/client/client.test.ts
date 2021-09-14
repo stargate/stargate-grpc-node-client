@@ -29,7 +29,12 @@ describe('Stargate gRPC client', ()=> {
 
         it("supports basic queries", async () => {
             const authEndpoint = `http://${container.getHost()}:${container.getMappedPort(8081)}/v1/auth`;
-            const authClient = createTableBasedAuthClient(authEndpoint, 'cassandra', 'cassandra');
+            const authConfig = {
+                serviceURL: authEndpoint,
+                username: 'cassandra',
+                password: 'cassandra'
+            };
+            const authClient = createTableBasedAuthClient(authConfig);
 
             const grpcEndpoint = `${container.getHost()}:${container.getMappedPort(8090)}`;
             const grpcClient = creategRPCClient(authClient, grpcEndpoint, grpc.credentials.createInsecure());

@@ -9,10 +9,16 @@ interface AuthToken {
     exp: string;
 }
 
+interface TableBasedAuthClientConfig {
+    serviceURL: string;
+    username: string;
+    password: string;
+}
+
 const AUTH_SERVICE_TIMEOUT = 5000;
 
-// TODO: take an object here
-export const createTableBasedAuthClient = (serviceURL: string, username: string, password: string): AuthClient => {
+export const createTableBasedAuthClient = (config: TableBasedAuthClientConfig): AuthClient => {
+    const {serviceURL, username, password} = config;
     const httpClient = axios.create({timeout: AUTH_SERVICE_TIMEOUT});
 
     let token: AuthToken;
