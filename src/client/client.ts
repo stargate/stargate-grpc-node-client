@@ -10,6 +10,7 @@ export interface grpcClient {
     executeQuery: (query: stargateQuery.Query) => Promise<stargateQuery.Response>;
 }
 
+// TODO: this should take a config object, not the last three params separately
 export const creategRPCClient = (authClient: AuthClient, address: string, credentials: grpc.ChannelCredentials, options?: Partial<grpc.ChannelOptions>): grpcClient => {
     const client = new stargate.StargateClient(address, credentials, options);
     const executePromisified = util.promisify(client.ExecuteQuery).bind(client);

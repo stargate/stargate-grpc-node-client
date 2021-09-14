@@ -1,6 +1,8 @@
-import {sendQuery} from "./client";
+import {creategRPCClient} from "./client";
 import {createTableBasedAuthClient} from "../auth/auth";
 import {GenericContainer, StartedTestContainer} from "testcontainers";
+import {stargate as proto} from "../proto/query";
+import * as grpc from '@grpc/grpc-js';
 
 describe('Stargate gRPC client', ()=> {
     // TODO: make sure this is set only for this test suite
@@ -20,14 +22,22 @@ describe('Stargate gRPC client', ()=> {
         });
 
         afterAll(async () => {
-            await container.stop();
+            if (container) {
+                await container.stop();
+            }
         });
 
         it("supports basic queries", async () => {
             const authEndpoint = `http://${container.getHost()}:${container.getMappedPort(8081)}/v1/auth`;
             const authClient = createTableBasedAuthClient(authEndpoint, 'cassandra', 'cassandra');
-            const token = await authClient.getAuthToken();
-            expect(token).not.toBeUndefined();
+
+            const grpcEndpoint = `${container.getHost()}:${container.getMappedPort(8090)}`;
+            const grpcClient = creategRPCClient(authClient, grpcEndpoint, grpc.credentials.createInsecure());
+
+            const query = new proto.Query({cql: 'select * from system.local'});
+
+            const result = await grpcClient.executeQuery(query);
+            expect(result).not.toBeFalsy();
         })
     })
 })
