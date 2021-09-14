@@ -13,7 +13,16 @@ export interface grpcClient {
 // TODO: this should take a config object, not the last three params separately
 export const creategRPCClient = (authClient: AuthClient, address: string, credentials: grpc.ChannelCredentials, options?: Partial<grpc.ChannelOptions>): grpcClient => {
     const client = new stargate.StargateClient(address, credentials, options);
-    const executePromisified = util.promisify(client.ExecuteQuery).bind(client);
+
+    const executeQueryAsPromise = (message: stargateQuery.Query, metadata: grpc.Metadata) => {
+        return new Promise((resolve, reject) => {
+            client.ExecuteQuery(message, metadata, (error, value) => {
+                if (error) reject (error);
+                resolve(value);
+            })            
+        })
+    }
+    
 
     return {
         executeQuery: async (query: stargateQuery.Query) => {
@@ -28,7 +37,7 @@ export const creategRPCClient = (authClient: AuthClient, address: string, creden
             metadata.set('x-cassandra-token', authToken);
 
             try {
-                const response = await executePromisified(query);
+                const response = await executeQueryAsPromise(query, metadata);
                 return response as stargateQuery.Response;
             } catch (e) {
                 const error = e as grpc.ServiceError;
@@ -38,16 +47,6 @@ export const creategRPCClient = (authClient: AuthClient, address: string, creden
     }
 }
 
-
-// export interface CallOptions {
-//     deadline?: Deadline;
-//     host?: string;
-//     parent?: ServerUnaryCall<any, any> | ServerReadableStream<any, any> | ServerWritableStream<any, any> | ServerDuplexStream<any, any>;
-//     propagate_flags?: number;
-//     credentials?: CallCredentials;
-//     interceptors?: Interceptor[];
-//     interceptor_providers?: InterceptorProvider[];
-// }
 
 export const sendQuery = async (query: stargateQuery.Query, token: string) => {
     const stargateClient = new stargate.StargateClient("localhost:8090", grpc.credentials.createInsecure());
