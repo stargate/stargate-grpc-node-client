@@ -4,8 +4,7 @@ import {GenericContainer, StartedTestContainer} from "testcontainers";
 import {stargate as proto} from "../proto/query";
 import * as grpc from '@grpc/grpc-js';
 
-describe('Stargate gRPC client', ()=> {
-    // TODO: make sure this is set only for this test suite
+describe('Stargate gRPC client integration tests', ()=> {
     jest.setTimeout(40000);
     describe('sendQuery', () => {
         let container: StartedTestContainer;
@@ -37,7 +36,13 @@ describe('Stargate gRPC client', ()=> {
             const authClient = createTableBasedAuthClient(authConfig);
 
             const grpcEndpoint = `${container.getHost()}:${container.getMappedPort(8090)}`;
-            const grpcClient = creategRPCClient(authClient, grpcEndpoint, grpc.credentials.createInsecure());
+
+            const grpcConfig = {
+                address: grpcEndpoint,
+                credentials: grpc.credentials.createInsecure()
+            }
+
+            const grpcClient = creategRPCClient(authClient, grpcConfig);
 
             const query = new proto.Query({cql: 'select * from system.local'});
 

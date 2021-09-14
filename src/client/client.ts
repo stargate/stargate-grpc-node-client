@@ -8,8 +8,15 @@ export interface grpcClient {
     executeQuery: (query: stargateQuery.Query) => Promise<stargateQuery.Response>;
 }
 
+interface ClientConfig {
+    address: string;
+    credentials: grpc.ChannelCredentials;
+    options?: Partial<grpc.ChannelOptions>;
+}
+
 // TODO: this should take a config object, not the last three params separately
-export const creategRPCClient = (authClient: AuthClient, address: string, credentials: grpc.ChannelCredentials, options?: Partial<grpc.ChannelOptions>): grpcClient => {
+export const creategRPCClient = (authClient: AuthClient, config: ClientConfig): grpcClient => {
+    const {address, credentials, options} = config;
     const client = new stargate.StargateClient(address, credentials, options);
 
     const executeQueryAsPromise = (message: stargateQuery.Query, metadata: grpc.Metadata) => {
@@ -21,7 +28,6 @@ export const creategRPCClient = (authClient: AuthClient, address: string, creden
         })
     }
     
-
     return {
         executeQuery: async (query: stargateQuery.Query) => {
             let authToken: string;
