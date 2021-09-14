@@ -1,6 +1,6 @@
 import axios from "axios";
 
-interface AuthClient {
+export interface AuthClient {
     getAuthToken: () => Promise<string>;
 }
 

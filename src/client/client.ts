@@ -4,7 +4,38 @@ import * as util from "util";
 import { helloworld } from "../proto/greeter";
 import { stargate } from '../proto/stargate';
 import {stargate as stargateQuery} from "../proto/query";
+import { AuthClient } from '../auth/auth';
 
+export interface grpcClient {
+    executeQuery: (query: stargateQuery.Query) => Promise<stargateQuery.Response>;
+}
+
+export const creategRPCClient = (authClient: AuthClient, address: string, credentials: grpc.ChannelCredentials, options?: Partial<grpc.ChannelOptions>): grpcClient => {
+    const client = new stargate.StargateClient(address, credentials, options);
+    const executePromisified = util.promisify(client.ExecuteQuery).bind(client);
+
+    return {
+        executeQuery: async (query: stargateQuery.Query) => {
+            let authToken: string;
+            try {
+                authToken = await authClient.getAuthToken();
+            } catch (e) {
+                throw e;
+            }
+
+            const metadata = new grpc.Metadata();
+            metadata.set('x-cassandra-token', authToken);
+
+            try {
+                const response = await executePromisified(query);
+                return response as stargateQuery.Response;
+            } catch (e) {
+                const error = e as grpc.ServiceError;
+                throw e;
+            }
+        }
+    }
+}
 
 
 // export interface CallOptions {
