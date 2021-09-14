@@ -14,7 +14,6 @@ interface ClientConfig {
     options?: Partial<grpc.ChannelOptions>;
 }
 
-// TODO: this should take a config object, not the last three params separately
 export const creategRPCClient = (authClient: AuthClient, config: ClientConfig): grpcClient => {
     const {address, credentials, options} = config;
     const client = new stargate.StargateClient(address, credentials, options);
