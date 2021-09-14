@@ -49,3 +49,11 @@ export const creategRPCClient = (authClient: AuthClient, config: ClientConfig): 
         }
     }
 }
+
+export const toResultSet = (response: stargateQuery.Response): stargateQuery.ResultSet => {
+    const {result_set: resultSet} = response;
+    const data = resultSet.data;
+    // TODO: will this ever throw? How do we know it's legit?
+    const test = stargateQuery.ResultSet.deserialize(data.value);
+    return test;
+}

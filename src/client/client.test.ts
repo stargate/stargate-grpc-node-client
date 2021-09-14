@@ -1,4 +1,4 @@
-import {creategRPCClient} from "./client";
+import {creategRPCClient, toResultSet} from "./client";
 import {createTableBasedAuthClient} from "../auth/auth";
 import {GenericContainer, StartedTestContainer} from "testcontainers";
 import {stargate as proto} from "../proto/query";
@@ -51,7 +51,11 @@ describe('Stargate gRPC client integration tests', ()=> {
             const query = new proto.Query({cql: 'select * from system.local'});
 
             const result = await grpcClient.executeQuery(query);
-            expect(result).not.toBeFalsy();
+            const resultSet = toResultSet(result);
+            expect(resultSet.columns.length).toEqual(18);
+            expect(resultSet.rows.length).toEqual(1);
+            expect(resultSet.rows[0].values.length).toEqual(18);
+
         })
     })
 })
