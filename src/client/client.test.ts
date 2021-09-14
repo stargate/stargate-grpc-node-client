@@ -8,6 +8,8 @@ describe('Stargate gRPC client integration tests', ()=> {
     jest.setTimeout(40000);
     describe('sendQuery', () => {
         let container: StartedTestContainer;
+        let authEndpoint: string;
+        let grpcEndpoint: string;
         
         beforeAll(async () => {
             container = await new GenericContainer("stargateio/stargate-3_11:v1.0.32")
@@ -18,6 +20,10 @@ describe('Stargate gRPC client integration tests', ()=> {
                 .withExposedPorts(8081, 8084, 8090)
                 // TODO: set a waiting strategy
                 .start();
+
+                const containerHost = container.getHost();
+                authEndpoint = `http://${containerHost}:${container.getMappedPort(8081)}/v1/auth`;
+                grpcEndpoint = `${containerHost}:${container.getMappedPort(8090)}`;
         });
 
         afterAll(async () => {
@@ -27,15 +33,13 @@ describe('Stargate gRPC client integration tests', ()=> {
         });
 
         it("supports basic queries", async () => {
-            const authEndpoint = `http://${container.getHost()}:${container.getMappedPort(8081)}/v1/auth`;
             const authConfig = {
                 serviceURL: authEndpoint,
                 username: 'cassandra',
                 password: 'cassandra'
             };
+            
             const authClient = createTableBasedAuthClient(authConfig);
-
-            const grpcEndpoint = `${container.getHost()}:${container.getMappedPort(8090)}`;
 
             const grpcConfig = {
                 address: grpcEndpoint,
