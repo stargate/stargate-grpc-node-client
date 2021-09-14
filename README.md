@@ -36,21 +36,19 @@ curl -L -X POST 'http://localhost:8081/v1/auth' \
 ```
 
 
-### Notes
-
-- Suggestions on how to promisify, so we don't need to use callbacks: https://github.com/grpc/grpc-node/issues/54
-- proto loader can generate TS types - where to put them? https://www.npmjs.com/package/@grpc/proto-loader
-
-- The `gen` script uses [grpc-tools](https://github.com/grpc/grpc-node/tree/master/packages/grpc-tools) with [the ts-protoc-gen plugin](https://github.com/improbable-eng/ts-protoc-gen) to generate files. Unfortunately, we have a type/message in query.proto called `Map`. The ts compiler freaks out on the generated TS file because of this.
-
-
 ### TODO
 
-- Solve the `Map` problem, so we can safely generate TS files for the actual SG protobuf
-    - might need to file an issue in the library: https://github.com/improbable-eng/ts-protoc-gen
+- The `gen` script uses [grpc-tools](https://github.com/grpc/grpc-node/tree/master/packages/grpc-tools) with [the ts-protoc-gen plugin](https://github.com/improbable-eng/ts-protoc-gen) to generate files. Unfortunately, we have a type/message in query.proto called `Map`. The ts compiler freaks out on the generated TS file because of this - it can't tell the different in the generated file between that `Map` and the built-in generic in TS.
+  - My temporary solution was to just rename `Map` -> `MapFixMe`, but obviously that's not production-ready. Need to actually solve this.
+  - May need to file an issue in the ts-protoc-gen-library: https://github.com/improbable-eng/ts-protoc-gen
+- Add error handling to the auth and client
+- Add documentation for example use cases (bonus for a separate repo that imports the library and uses it)
 - Write an `isgRPCError` type guard, so our promisified catch blocks can check if they're working with an error and log/throw appropriately
-- Update client to send a hard-coded SG gRPC query. Hardcode the auth token in the metadata as well
-- Is `grpc.credentials.createInsecure()` the right way to generate production-ready creds? The name tells me no; we may want to use the metadata generator option to generate the metadata with auth token rather than do it separately
-    - Auth details: https://grpc.io/docs/guides/auth/
-    - Actually, should we just take the already-configured client from the `new stargate.StargateClient` call? Shouldn't it be up to the user to handle creating the connection, since we can't easily account for various authentication schemes?
-        - If we do it this way they'd need to generate the proto files themselves. Is that a problem? Would they need to do that with the other language clients?
+- Implement batch function
+- Unit test the auth and client
+- Split out unit and integration tests
+- Add some GH workflow config to run tests on push
+- Move promisification outside client creation
+- Add more integration tests based on Go library
+- Add some code quality stuff like a linter
+- Offer both callback and promise-based options for client methods (do we need this, or can we just wait to see if anyone asks for it?)
