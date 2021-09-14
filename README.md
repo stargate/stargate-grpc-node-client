@@ -6,7 +6,11 @@ This package lets Node applications communicate with [the Stargate data gateway]
 
 The definition files in the `proto/` directory are copied from [the Stargate repository](https://github.com/stargate/stargate/tree/master/grpc-proto/proto)
 
-## Running locally
+## Running tests
+
+`npm run test` will run integration tests that exercise the gRPC client.
+
+## Running Stargate locally
 
 User the following Docker command to run Stargate locally in developer mode and map your machine's port 8090 to the container's ([Stargate uses 8090 as the default gRPC server port](https://github.com/stargate/stargate/blob/master/grpc/src/main/java/io/stargate/grpc/impl/GrpcImpl.java#L64)):
 
