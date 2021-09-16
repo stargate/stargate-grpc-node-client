@@ -1,7 +1,7 @@
 import {creategRPCClient, toResultSet} from "./client";
 import {createTableBasedAuthClient} from "../auth/auth";
 import {GenericContainer, StartedTestContainer} from "testcontainers";
-import {stargate as proto} from "../proto/query";
+import { Query} from '../proto/query_pb';
 import * as grpc from '@grpc/grpc-js';
 
 describe('Stargate gRPC client integration tests', ()=> {
@@ -48,14 +48,20 @@ describe('Stargate gRPC client integration tests', ()=> {
 
             const grpcClient = creategRPCClient(authClient, grpcConfig);
 
-            const query = new proto.Query({cql: 'select * from system.local'});
+            const query = new Query();
+            query.setCql('select * from system.local');
 
             const result = await grpcClient.executeQuery(query);
             const resultSet = toResultSet(result);
-            expect(resultSet.columns.length).toEqual(18);
-            expect(resultSet.rows.length).toEqual(1);
-            expect(resultSet.rows[0].values.length).toEqual(18);
+            expect(resultSet.getColumnsList().length).toEqual(18);
+            const rowList = resultSet.getRowsList();
+            expect(rowList.length).toEqual(1);
+            const firstRow = rowList[0];
+            const firstRowValues = firstRow.getValuesList();
+            expect(firstRowValues.length).toEqual(18);
 
+            const firstValue = firstRowValues[0].getString();
+            expect(firstValue).toEqual("local");
         })
     })
 })

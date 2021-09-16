@@ -1,11 +1,11 @@
 import * as grpc from '@grpc/grpc-js';
 
-import { stargate } from '../proto/stargate';
-import {stargate as stargateQuery} from "../proto/query";
+import { StargateClient } from '../proto/stargate_grpc_pb';
+import { Query, Response, ResultSet } from '../proto/query_pb';
 import { AuthClient } from '../auth/auth';
 
 export interface grpcClient {
-    executeQuery: (query: stargateQuery.Query) => Promise<stargateQuery.Response>;
+    executeQuery: (query: Query) => Promise<Response>;
 }
 
 interface ClientConfig {
@@ -16,11 +16,11 @@ interface ClientConfig {
 
 export const creategRPCClient = (authClient: AuthClient, config: ClientConfig): grpcClient => {
     const {address, credentials, options} = config;
-    const client = new stargate.StargateClient(address, credentials, options);
+    const client = new StargateClient(address, credentials, options);
 
-    const executeQueryAsPromise = (message: stargateQuery.Query, metadata: grpc.Metadata) => {
+    const executeQueryAsPromise = (message: Query, metadata: grpc.Metadata) => {
         return new Promise((resolve, reject) => {
-            client.ExecuteQuery(message, metadata, (error, value) => {
+            client.executeQuery(message, metadata, (error, value) => {
                 if (error) reject (error);
                 resolve(value);
             })            
@@ -28,7 +28,7 @@ export const creategRPCClient = (authClient: AuthClient, config: ClientConfig): 
     }
     
     return {
-        executeQuery: async (query: stargateQuery.Query) => {
+        executeQuery: async (query: Query) => {
             let authToken: string;
             try {
                 authToken = await authClient.getAuthToken();
@@ -41,7 +41,7 @@ export const creategRPCClient = (authClient: AuthClient, config: ClientConfig): 
 
             try {
                 const response = await executeQueryAsPromise(query, metadata);
-                return response as stargateQuery.Response;
+                return response as Response;
             } catch (e) {
                 const error = e as grpc.ServiceError;
                 throw e;
@@ -50,10 +50,10 @@ export const creategRPCClient = (authClient: AuthClient, config: ClientConfig): 
     }
 }
 
-export const toResultSet = (response: stargateQuery.Response): stargateQuery.ResultSet => {
-    const {result_set: resultSet} = response;
-    const data = resultSet.data;
+export const toResultSet = (response: Response): ResultSet => {
+    const resultSet = response.getResultSet();
+    const data = resultSet?.getData();
     // TODO: will this ever throw? How do we know it's legit?
-    const test = stargateQuery.ResultSet.deserialize(data.value);
+    const test = ResultSet.deserializeBinary(data?.getValue() as Uint8Array);
     return test;
 }
