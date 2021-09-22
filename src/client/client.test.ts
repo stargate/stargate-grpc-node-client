@@ -331,6 +331,24 @@ describe('Stargate gRPC client integration tests', ()=> {
             expect(varint.hasVarint()).toBe(true);
             // TODO: need to convert this to a number...
 
+            const updateQuery = new Query();
+            updateQuery.setCql("update ks1.tbl1 set asciivalue = 'echo' where id = f066f76d-5e96-4b52-8d8a-0f51387df76b;");
+
+            const updateResponse = await promisifiedQuery(updateQuery, metadata) as Response;
+            expect(updateResponse.hasResultSet()).toBe(false);
+
+            const selectAllWithIdQuery = new Query();
+            selectAllWithIdQuery.setCql("select * from ks1.tbl1 where id = f066f76d-5e96-4b52-8d8a-0f51387df76b;");
+
+            const selectAllWithIdResponse = await promisifiedQuery(selectAllWithIdQuery, metadata) as Response;
+            const selectAllWithIdResultSet = toResultSet(selectAllWithIdResponse);
+
+            const firstRowOfResult = selectAllWithIdResultSet.getRowsList()[0];
+
+            const [_, newasciiValue] = firstRowOfResult.getValuesList();
+
+            expect(newasciiValue.hasString()).toBe(true);
+            expect(newasciiValue.getString()).toBe("echo");
         })
     })
 })
