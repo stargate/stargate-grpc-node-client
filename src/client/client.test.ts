@@ -1,7 +1,7 @@
 import {blobToString, toDate, toResultSet, toUUID} from "./client";
 import {TableBasedCallCredentials} from "../auth/auth";
 import {GenericContainer, StartedTestContainer} from "testcontainers";
-import { Query, Response, TypeSpec, Uuid} from '../proto/query_pb';
+import { Collection, Decimal, Query, Response, TypeSpec, Uuid} from '../proto/query_pb';
 import * as grpc from '@grpc/grpc-js';
 import { StargateClient } from "../proto/stargate_grpc_pb";
 
@@ -207,7 +207,7 @@ describe('Stargate gRPC client integration tests', ()=> {
 
             const firstRow = resultSet.getRowsList()[0];
 
-            const [id, asciivalue, bigintvalue, blobvalue, booleanvalue, datevalue, ...rest] = firstRow.getValuesList();
+            const [id, asciivalue, bigintvalue, blobvalue, booleanvalue, datevalue, decimalvalue, doublevalue, floatvalue, inetvalue, intvalue, listvalue, mapvalue, setvalue, smallintvalue, textvalue, timestampvalue, timeUUIDvalue, timevalue, tinyint, tuple, string, varint] = firstRow.getValuesList();
 
             expect(id.hasUuid()).toBe(true);
             expect(toUUID(id.getUuid() as Uuid)).toEqual("f066f76d-5e96-4b52-8d8a-0f51387df76b");
@@ -231,9 +231,106 @@ describe('Stargate gRPC client integration tests', ()=> {
              * TODO: This number is the # of days since epoch time,
              * with epoch starting at 2 ^31.
              * Should we expose a method to turn that into a Date object?
+             * (I'm worried about timezones)
              */
             const asDate = datevalue.getDate();
             expect(asDate).toEqual(2147502525);
+
+            expect(decimalvalue.hasDecimal()).toBe(true);
+            // TODO: How to map decimals here?
+        
+            expect(doublevalue.hasDouble()).toBe(true);
+            expect(doublevalue.getDouble()).toBe(2.2);
+
+            expect(floatvalue.hasFloat()).toBe(true);
+            /**
+             * TODO: We inserted 3.3 but JS floating-point precision is wacky.
+             * It looks like this is an issue with JS/the grpc library; not sure
+             * we can solve it.
+             * https://github.com/grpc/grpc/issues/2227
+             */
+            expect(floatvalue.getFloat()).toBe(3.299999952316284);
+
+            expect(inetvalue.hasBytes()).toBe(true);
+            const inetBytes = inetvalue.getBytes();
+            /**
+             * TODO: surely there's a better way to do this,
+             * but the blobToString helper gives us an empty string...
+             */
+            expect(inetBytes.length).toBe(4);
+            expect(inetBytes[0]).toBe(127);
+            expect(inetBytes[1]).toBe(0);
+            expect(inetBytes[2]).toBe(0);
+            expect(inetBytes[3]).toBe(1);
+
+            expect(intvalue.hasInt()).toBe(true);
+            expect(intvalue.getInt()).toBe(2);
+
+            expect(listvalue.hasCollection()).toBe(true);
+            const elementsInList = (listvalue.getCollection() as Collection).getElementsList();
+            const [first, second, third] = elementsInList;
+            expect(first.getString()).toBe('a');
+            expect(second.getString()).toBe('b');
+            expect(third.getString()).toBe('c');
+
+            expect(mapvalue.hasCollection()).toBe(true);
+            const mapCollection = mapvalue.getCollection() as Collection;
+            const valuesInMapCollection = mapCollection.getElementsList();
+
+            /**
+             * TODO: Is there any way to do this generically, so we could just
+             * create a map for them?
+             */
+            expect(valuesInMapCollection[0].getInt()).toBe(1);
+            expect(valuesInMapCollection[1].getString()).toBe('a');
+            expect(valuesInMapCollection[2].getInt()).toBe(2);
+            expect(valuesInMapCollection[3].getString()).toBe('b');
+            expect(valuesInMapCollection[4].getInt()).toBe(3);
+            expect(valuesInMapCollection[5].getString()).toBe('c');
+
+            expect(setvalue.hasCollection()).toBe(true);
+            const elementsInSet = (setvalue.getCollection() as Collection).getElementsList();
+            const [firstSetItem, secondSetItem, thirdSetItem] = elementsInSet;
+            expect(firstSetItem.getString()).toBe('a');
+            expect(secondSetItem.getString()).toBe('b');
+            expect(thirdSetItem.getString()).toBe('c');
+
+            expect(smallintvalue.hasInt()).toBe(true);
+            expect(smallintvalue.getInt()).toBe(3);
+
+            expect(textvalue.hasString()).toBe(true);
+            expect(textvalue.getString()).toBe("bravo");
+
+            expect(timestampvalue.hasInt()).toBe(true);
+            expect(timestampvalue.getInt()).toBe(1631032831123);
+
+            expect(timeUUIDvalue.hasUuid()).toBe(true);
+            // TODO: received is 3495380673717146000,12520290924444647000, think we need UUID conversion here
+//            expect((timeUUIDvalue.getUuid() as Uuid).toString()).toBe("30821634-13ad-11eb-adc1-0242ac120002")
+
+            expect(timevalue.hasTime()).toBe(true);
+            expect(timevalue.getTime()).toBe(0x219676e3e115);
+
+            expect(tinyint.hasInt()).toBe(true);
+            expect(tinyint.getInt()).toBe(5);
+
+            expect(tuple.hasCollection()).toBe(true);
+            const elementsInTuple = (tuple.getCollection() as Collection).getElementsList();
+            const [firstTupleItem, secondTupleItem, thirdTupleItem] = elementsInTuple;
+            expect(firstTupleItem.getInt()).toBe(3);
+            expect(secondTupleItem.getString()).toBe("bar");
+            /**
+             * TODO: Again, JS floating-point numbers. Not sure it's safe
+             * to send any floating-point numbers via Node...
+             */
+            expect(thirdTupleItem.getFloat()).toBe(2.0999999046325684);
+
+            expect(string.hasString()).toBe(true);
+            expect(string.getString()).toEqual("charlie");
+
+            expect(varint.hasVarint()).toBe(true);
+            // TODO: need to convert this to a number...
+
         })
     })
 })

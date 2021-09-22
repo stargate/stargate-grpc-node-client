@@ -28,6 +28,19 @@ export const toDate = (days: number): Date => {
     return date;;
 }
 
+            /**
+             * This doesn't account for scale; given the 1.1 example it returns 11
+             * https://stackoverflow.com/questions/39346517/convert-uint8arrayn-into-integer-in-node-js
+             */
+             function convert(Uint8Arr: Uint8Array): number {
+                const length = Uint8Arr.length;
+            
+                const buffer = Buffer.from(Uint8Arr);
+                const result = buffer.readUIntBE(0, length);
+            
+                return result;
+            }
+
 const toUuidString = (lsb: bigint, msb: bigint): string => {
     return `${digits(msb >> BigInt(32), BigInt(8))}-${digits(msb >> BigInt(16), BigInt(4))}-${digits(
       msb,
