@@ -1,9 +1,10 @@
 import {blobToString, toDate, toResultSet, toUUID} from "./client";
 import {TableBasedCallCredentials} from "../auth/auth";
 import {GenericContainer, StartedTestContainer} from "testcontainers";
-import { Collection, Decimal, Query, Response, TypeSpec, Uuid} from '../proto/query_pb';
+import { Collection, Decimal, Payload, Query, QueryParameters, Response, TypeSpec, Uuid} from '../proto/query_pb';
 import * as grpc from '@grpc/grpc-js';
 import { StargateClient } from "../proto/stargate_grpc_pb";
+import { Any } from "google-protobuf/google/protobuf/any_pb";
 
 describe('Stargate gRPC client integration tests', ()=> {
     jest.setTimeout(40000);
@@ -90,8 +91,8 @@ describe('Stargate gRPC client integration tests', ()=> {
             const asInt = firstRowFirstValue.getInt();
             expect(asInt).toEqual(7776000);
             expect(resultSet.hasPagingState()).toBe(false);
-        })
-        it.only("Full CRUD", async () => {
+        });
+        it("Supports full CRUD operations", async () => {
             const tableBasedCallCredentials = new TableBasedCallCredentials('cassandra', 'cassandra');
             const metadata = await tableBasedCallCredentials.generateMetadata({service_url: authEndpoint});
 
@@ -349,6 +350,43 @@ describe('Stargate gRPC client integration tests', ()=> {
 
             expect(newasciiValue.hasString()).toBe(true);
             expect(newasciiValue.getString()).toBe("echo");
+        });
+        it.only("Supports paramaterized queries", async () => {
+            const tableBasedCallCredentials = new TableBasedCallCredentials('cassandra', 'cassandra');
+            const metadata = await tableBasedCallCredentials.generateMetadata({service_url: authEndpoint});
+
+            const stargateClient = new StargateClient(grpcEndpoint, grpc.credentials.createInsecure());
+
+            const query = new Query();
+            query.setCql("select * from system_schema.keyspaces where keyspace_name = ?");
+            
+            
+            const payload = new Payload();
+            payload.setType(0);
+            const any = new Any();
+            any.setValue("system");
+            payload.setData(any);
+
+            const queryParameters = new QueryParameters();
+            queryParameters.setTracing(false);
+            queryParameters.setSkipMetadata(false);
+
+            query.setValues(payload);
+            query.setParameters(queryParameters);
+
+            const promisifiedQuery = executeQueryPromisified(stargateClient);
+
+            const response = await promisifiedQuery(query, metadata) as Response;
+            const resultSet = toResultSet(response);
+
+            const rows = resultSet.getRowsList();
+            expect(rows.length).toBe(1);
+
+            const firstRowFirstValue = rows[0].getValuesList()[0];
+            expect(firstRowFirstValue.getString()).toBe("system");
+
+
+            
         })
     })
 })
