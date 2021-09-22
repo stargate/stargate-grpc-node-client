@@ -1,8 +1,9 @@
-import {creategRPCClient, toResultSet} from "./client";
-import {createTableBasedAuthClient} from "../auth/auth";
+import {toResultSet} from "./client";
+import {TableBasedCallCredentials} from "../auth/auth";
 import {GenericContainer, StartedTestContainer} from "testcontainers";
-import { Query} from '../proto/query_pb';
+import { Query, Response} from '../proto/query_pb';
 import * as grpc from '@grpc/grpc-js';
+import { StargateClient } from "../proto/stargate_grpc_pb";
 
 describe('Stargate gRPC client integration tests', ()=> {
     jest.setTimeout(40000);
@@ -33,35 +34,39 @@ describe('Stargate gRPC client integration tests', ()=> {
         });
 
         it("supports basic queries", async () => {
-            const authConfig = {
-                serviceURL: authEndpoint,
-                username: 'cassandra',
-                password: 'cassandra'
-            };
-            
-            const authClient = createTableBasedAuthClient(authConfig);
+            const tableBasedCallCredentials = new TableBasedCallCredentials('cassandra', 'cassandra');
+            const metadata = await tableBasedCallCredentials.generateMetadata({service_url: authEndpoint});
 
-            const grpcConfig = {
-                address: grpcEndpoint,
-                credentials: grpc.credentials.createInsecure()
-            }
-
-            const grpcClient = creategRPCClient(authClient, grpcConfig);
+            const stargateClient = new StargateClient(grpcEndpoint, grpc.credentials.createInsecure());
 
             const query = new Query();
             query.setCql('select * from system.local');
 
-            const result = await grpcClient.executeQuery(query);
-            const resultSet = toResultSet(result);
+            const promisifiedQuery = executeQueryPromisified(stargateClient);
+
+            const response = await promisifiedQuery(query, metadata) as Response;
+
+            const resultSet = toResultSet(response);
             expect(resultSet.getColumnsList().length).toEqual(18);
             const rowList = resultSet.getRowsList();
             expect(rowList.length).toEqual(1);
             const firstRow = rowList[0];
             const firstRowValues = firstRow.getValuesList();
             expect(firstRowValues.length).toEqual(18);
-
+    
             const firstValue = firstRowValues[0].getString();
             expect(firstValue).toEqual("local");
         })
     })
 })
+
+const executeQueryPromisified = (client: StargateClient) => {
+    return (message: Query, metadata: grpc.Metadata) => {
+        return new Promise((resolve, reject) => {
+            client.executeQuery(message, metadata, (error, value) => {
+                if (error) reject (error);
+                resolve(value);
+            })            
+        })
+    }
+}
