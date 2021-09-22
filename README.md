@@ -42,9 +42,7 @@ curl -L -X POST 'http://localhost:8081/v1/auth' \
 
 ### TODO
 
-- The `gen` script uses [grpc-tools](https://github.com/grpc/grpc-node/tree/master/packages/grpc-tools) with [the ts-protoc-gen plugin](https://github.com/improbable-eng/ts-protoc-gen) to generate files. Unfortunately, we have a type/message in query.proto called `Map`. The ts compiler freaks out on the generated TS file because of this - it can't tell the different in the generated file between that `Map` and the built-in generic in TS.
-  - My temporary solution was to just rename `Map` -> `MapFixMe`, but obviously that's not production-ready. Need to actually solve this.
-  - May need to file an issue in the ts-protoc-gen-library: https://github.com/improbable-eng/ts-protoc-gen
+- The `gen` script uses [grpc-tools](https://github.com/grpc/grpc-node/tree/master/packages/grpc-tools) with [the ts-protoc-gen plugin](https://github.com/improbable-eng/ts-protoc-gen) to generate files, including TS definition files. This uses a not-super-idiomatic getter/setter convention. There's another library, [protoc-gen-ts](https://github.com/thesayyn/protoc-gen-ts), that generates TS files directly (instead of JS with definition files). This is more idiomatic but it doesn't support our current proto file, because it chokes when given a file with a `Map` message type and other messages that use the primitive `map` type. [I've opened an issue](https://github.com/thesayyn/protoc-gen-ts/issues/88) but have yet to hear back.
 - Add error handling to the auth and client
 - Add documentation for example use cases (bonus for a separate repo that imports the library and uses it)
 - Write an `isgRPCError` type guard, so our promisified catch blocks can check if they're working with an error and log/throw appropriately
