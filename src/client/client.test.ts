@@ -77,9 +77,11 @@ describe('Stargate gRPC client integration tests', ()=> {
 
             // Check the first column returned
             const firstColumnSpec = resultSet.getColumnsList()[0];
+
             const expectedTypeSpec = new TypeSpec();
-            expectedTypeSpec.setBasic(9);
+            expectedTypeSpec.setBasic(9); // 9 = int
             expect(firstColumnSpec.getType()).toEqual(expectedTypeSpec);
+
             expect(firstColumnSpec.getName()).toEqual("gc_grace_seconds");
 
             const rowsReturned = resultSet.getRowsList();
@@ -351,7 +353,7 @@ describe('Stargate gRPC client integration tests', ()=> {
             expect(newasciiValue.hasString()).toBe(true);
             expect(newasciiValue.getString()).toBe("echo");
         });
-        it.only("Supports paramaterized queries", async () => {
+        it.skip("Supports paramaterized queries", async () => {
             const tableBasedCallCredentials = new TableBasedCallCredentials('cassandra', 'cassandra');
             const metadata = await tableBasedCallCredentials.generateMetadata({service_url: authEndpoint});
 
@@ -377,6 +379,7 @@ describe('Stargate gRPC client integration tests', ()=> {
             const promisifiedQuery = executeQueryPromisified(stargateClient);
 
             const response = await promisifiedQuery(query, metadata) as Response;
+
             const resultSet = toResultSet(response);
 
             const rows = resultSet.getRowsList();
@@ -384,6 +387,21 @@ describe('Stargate gRPC client integration tests', ()=> {
 
             const firstRowFirstValue = rows[0].getValuesList()[0];
             expect(firstRowFirstValue.getString()).toBe("system");
+
+            
+            // Or...
+            
+            stargateClient.executeQuery(query, metadata, (err, response) => {
+                const resultSet = toResultSet(response as Response);
+
+                const rows = resultSet.getRowsList();
+                expect(rows.length).toBe(1);
+    
+                const firstRowFirstValue = rows[0].getValuesList()[0];
+                expect(firstRowFirstValue.getString()).toBe("system");
+            })
+
+
 
 
             

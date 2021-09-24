@@ -44,10 +44,12 @@ export class TableBasedCallCredentials extends CallCredentials {
         return metadata;
     }
 
+    // TODO
     compose(callCredentials: CallCredentials): CallCredentials {
         return this;
     }
 
+    // TODO
     _equals(other: CallCredentials): boolean {
         return true;
     }
