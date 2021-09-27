@@ -50,23 +50,16 @@ export class TableBasedCallCredentials extends CallCredentials {
 
     private async getMetadataFromStargate(options: CallMetadataOptions): Promise<Metadata> {
         const {service_url} = options;
-        if (!this.authToken) { // or auth token is expired
-            try {
-                const postBody = {username: this.username, password: this.password}
-                const authResponse = await this.httpClient.post(service_url, postBody);
+        try {
+            const postBody = {username: this.username, password: this.password}
+            const authResponse = await this.httpClient.post(service_url, postBody);
 
-                this.authToken = {
-                    value: authResponse.data.authToken,
-                    exp: 'TODO'
-                }
-            } catch (e) {
-                throw e;
-            }
+            const metadata = new Metadata();
+            metadata.set('x-cassandra-token', authResponse.data.authToken);
+    
+            return metadata;
+        } catch (e) {
+            throw e;
         }
-
-        const metadata = new Metadata();
-        metadata.set('x-cassandra-token', this.authToken.value);
-
-        return metadata;
     }
 }
