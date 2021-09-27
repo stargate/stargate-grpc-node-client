@@ -9,18 +9,16 @@ interface AuthToken {
 const AUTH_SERVICE_TIMEOUT = 5000;
 
 export class TableBasedCallCredentials extends CallCredentials {
-    private username: string;
-    private password: string;
+    #username: string;
+    #password: string;
     private httpClient: AxiosInstance;
-    private authToken: AuthToken | null;
     private metadataGenerators: ((options: CallMetadataOptions) => Promise<Metadata>)[];
 
     constructor(username: string, password: string) {
         super();
-        this.username = username;
-        this.password = password;
+        this.#username = username;
+        this.#password = password;
         this.httpClient = axios.create({timeout: AUTH_SERVICE_TIMEOUT});
-        this.authToken = null;
         this.metadataGenerators = [this.getMetadataFromStargate.bind(this)]
     }
 
@@ -38,20 +36,25 @@ export class TableBasedCallCredentials extends CallCredentials {
     compose(callCredentials: CallCredentials): CallCredentials {
         const currentGenerators = this.metadataGenerators;
         const newGenerator = callCredentials.generateMetadata;
-        const newCreds = new TableBasedCallCredentials(this.username, this.password);
+        const newCreds = new TableBasedCallCredentials(this.#username, this.#password);
         newCreds.metadataGenerators = currentGenerators.concat(newGenerator);
         return newCreds;
     }
 
-    // TODO
     _equals(other: CallCredentials): boolean {
-        return true;
+        if (this === other) {
+            return true;
+        }
+        if (other instanceof TableBasedCallCredentials) {
+            return this.#username === other.#username && this.#password === other.#password;
+        }
+        return false;
     }
 
     private async getMetadataFromStargate(options: CallMetadataOptions): Promise<Metadata> {
         const {service_url} = options;
         try {
-            const postBody = {username: this.username, password: this.password}
+            const postBody = {username: this.#username, password: this.#password}
             const authResponse = await this.httpClient.post(service_url, postBody);
 
             const metadata = new Metadata();
