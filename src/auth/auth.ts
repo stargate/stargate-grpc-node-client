@@ -13,6 +13,7 @@ export class TableBasedCallCredentials extends CallCredentials {
     private password: string;
     private httpClient: AxiosInstance;
     private authToken: AuthToken | null;
+    private metadataGenerators: ((options: CallMetadataOptions) => Promise<Metadata>)[];
 
     constructor(username: string, password: string) {
         super();
@@ -20,9 +21,34 @@ export class TableBasedCallCredentials extends CallCredentials {
         this.password = password;
         this.httpClient = axios.create({timeout: AUTH_SERVICE_TIMEOUT});
         this.authToken = null;
+        this.metadataGenerators = [this.getMetadataFromStargate.bind(this)]
     }
 
     async generateMetadata(options: CallMetadataOptions): Promise<Metadata> {
+        const base = new Metadata();
+        const generated: Metadata[] = await Promise.all(
+            this.metadataGenerators.map((generator) => generator(options))
+        );
+        for (const gen of generated) {
+            base.merge(gen);
+          }
+        return base;
+    }
+
+    compose(callCredentials: CallCredentials): CallCredentials {
+        const currentGenerators = this.metadataGenerators;
+        const newGenerator = callCredentials.generateMetadata;
+        const newCreds = new TableBasedCallCredentials(this.username, this.password);
+        newCreds.metadataGenerators = currentGenerators.concat(newGenerator);
+        return newCreds;
+    }
+
+    // TODO
+    _equals(other: CallCredentials): boolean {
+        return true;
+    }
+
+    private async getMetadataFromStargate(options: CallMetadataOptions): Promise<Metadata> {
         const {service_url} = options;
         if (!this.authToken) { // or auth token is expired
             try {
@@ -42,15 +68,5 @@ export class TableBasedCallCredentials extends CallCredentials {
         metadata.set('x-cassandra-token', this.authToken.value);
 
         return metadata;
-    }
-
-    // TODO
-    compose(callCredentials: CallCredentials): CallCredentials {
-        return this;
-    }
-
-    // TODO
-    _equals(other: CallCredentials): boolean {
-        return true;
     }
 }
