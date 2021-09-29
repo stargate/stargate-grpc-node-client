@@ -10,7 +10,10 @@
   },
   "scripts": {
     "test": "jest",
-    "compile": "rm -rf lib && tsc",
+    "precompile": "rm -rf lib",
+    "compile": "tsc",
+    "postcompile": "npm run copy-grpc-typedefs",
+    "copy-grpc-typedefs": "cp -rp src/proto/*d.ts lib/proto",
     "prestart": "npm run gen && npm run compile",
     "start": "node lib/index.js",
     "trace": "GRPC_TRACE=all GRPC_VERBOSITY=debug node lib/index.js",
