@@ -35,7 +35,7 @@ describe('Stargate gRPC client integration tests', ()=> {
         });
 
         it("supports basic queries", async () => {
-            const tableBasedCallCredentials = new TableBasedCallCredentials('cassandra', 'cassandra');
+            const tableBasedCallCredentials = new TableBasedCallCredentials({username: 'cassandra', password: 'cassandra'});
             const metadata = await tableBasedCallCredentials.generateMetadata({service_url: authEndpoint});
 
             const stargateClient = new StargateClient(grpcEndpoint, grpc.credentials.createInsecure());
@@ -60,7 +60,7 @@ describe('Stargate gRPC client integration tests', ()=> {
 
         });
         it("all numeric", async () => {
-            const tableBasedCallCredentials = new TableBasedCallCredentials('cassandra', 'cassandra');
+            const tableBasedCallCredentials = new TableBasedCallCredentials({username: 'cassandra', password: 'cassandra'});
             const metadata = await tableBasedCallCredentials.generateMetadata({service_url: authEndpoint});
 
             const stargateClient = new StargateClient(grpcEndpoint, grpc.credentials.createInsecure());
@@ -95,7 +95,7 @@ describe('Stargate gRPC client integration tests', ()=> {
             expect(resultSet.hasPagingState()).toBe(false);
         });
         it("Supports full CRUD operations", async () => {
-            const tableBasedCallCredentials = new TableBasedCallCredentials('cassandra', 'cassandra');
+            const tableBasedCallCredentials = new TableBasedCallCredentials({username: 'cassandra', password: 'cassandra'});
             const metadata = await tableBasedCallCredentials.generateMetadata({service_url: authEndpoint});
 
             const stargateClient = new StargateClient(grpcEndpoint, grpc.credentials.createInsecure());
@@ -354,7 +354,7 @@ describe('Stargate gRPC client integration tests', ()=> {
             expect(newasciiValue.getString()).toBe("echo");
         });
         it.skip("Supports paramaterized queries", async () => {
-            const tableBasedCallCredentials = new TableBasedCallCredentials('cassandra', 'cassandra');
+            const tableBasedCallCredentials = new TableBasedCallCredentials({username: 'cassandra', password: 'cassandra'});
             const metadata = await tableBasedCallCredentials.generateMetadata({service_url: authEndpoint});
 
             const stargateClient = new StargateClient(grpcEndpoint, grpc.credentials.createInsecure());

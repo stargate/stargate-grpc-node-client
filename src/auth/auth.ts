@@ -6,6 +6,12 @@ interface AuthToken {
     value: string;
     exp: string;
 }
+
+interface TableBasedCallCredentialsConfig {
+    username: string;
+    password: string;
+}
+
 const AUTH_SERVICE_TIMEOUT = 5000;
 
 export class TableBasedCallCredentials extends CallCredentials {
@@ -14,7 +20,7 @@ export class TableBasedCallCredentials extends CallCredentials {
     private httpClient: AxiosInstance;
     private metadataGenerators: ((options: CallMetadataOptions) => Promise<Metadata>)[];
 
-    constructor(username: string, password: string) {
+    constructor({username, password} : TableBasedCallCredentialsConfig ) {
         super();
         this.#username = username;
         this.#password = password;
@@ -36,7 +42,8 @@ export class TableBasedCallCredentials extends CallCredentials {
     compose(callCredentials: CallCredentials): CallCredentials {
         const currentGenerators = this.metadataGenerators;
         const newGenerator = callCredentials.generateMetadata;
-        const newCreds = new TableBasedCallCredentials(this.#username, this.#password);
+        const newCredsConfig = {username: this.#username, password: this.#password};
+        const newCreds = new TableBasedCallCredentials(newCredsConfig);
         newCreds.metadataGenerators = currentGenerators.concat(newGenerator);
         return newCreds;
     }

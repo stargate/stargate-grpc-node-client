@@ -9,7 +9,7 @@ describe("TableBasedCallCredentials", () => {
         describe("default scenario - only one metadata generator", () => {
             describe("successfully received response from service endpoint", () => {
                 it("returns a Metadata object with the auth token value inside", async () => {
-                    const credentials = new TableBasedCallCredentials('foo', 'bar');
+                    const credentials = new TableBasedCallCredentials({username: 'foo', password: 'bar'});
 
                     const scope = nock(MOCK_SERVICE_ENDPOINT)
                         .post('')
@@ -21,7 +21,7 @@ describe("TableBasedCallCredentials", () => {
             })
             describe("error calling service endpoint", () => {
                 it("throws an error", async () => {
-                    const credentials = new TableBasedCallCredentials('foo', 'bar');
+                    const credentials = new TableBasedCallCredentials({username: 'foo', password: 'bar'});
 
                     nock(MOCK_SERVICE_ENDPOINT)
                         .post('')
@@ -35,7 +35,8 @@ describe("TableBasedCallCredentials", () => {
         });
         describe("post-compose - multiple metadata generators", () => {
             it("returns a Metadata object with metadata from all generators", async () => {
-                const credentials = new TableBasedCallCredentials('foo', 'bar').compose(new DummyCallCredentials);
+                const credentials = new TableBasedCallCredentials({username: 'foo', password: 'bar'})
+                    .compose(new DummyCallCredentials);
 
                 const scope = nock(MOCK_SERVICE_ENDPOINT)
                     .post('')
@@ -49,7 +50,7 @@ describe("TableBasedCallCredentials", () => {
     })
     describe("compose", () => {
         it("returns a brand-new CallCredentials object", () => {
-            const credentials = new TableBasedCallCredentials('foo', 'bar');
+            const credentials = new TableBasedCallCredentials({username: 'foo', password: 'bar'});
             const dummyCredentials = new DummyCallCredentials();
 
             const composedCredentials = credentials.compose(dummyCredentials);
@@ -60,7 +61,7 @@ describe("TableBasedCallCredentials", () => {
     describe("_equals", () => {
         describe("called with the same object", () => {
             it("returns true", () => {
-                const credentials = new TableBasedCallCredentials('foo', 'bar');
+                const credentials = new TableBasedCallCredentials({username: 'foo', password: 'bar'});
                 const result = credentials._equals(credentials);
                 expect(result).toBe(true);
             })
@@ -68,7 +69,7 @@ describe("TableBasedCallCredentials", () => {
         describe("called with another object", () => {
             describe("other object is not an instance of TableBasedCallCredentials", () => {
                 it("returns false", () => {
-                    const tableBased = new TableBasedCallCredentials('foo', 'bar');
+                    const tableBased = new TableBasedCallCredentials({username: 'foo', password: 'bar'});
                     const dummy = new DummyCallCredentials();
                     const result = tableBased._equals(dummy);
                     expect(result).toBe(false);
@@ -77,23 +78,23 @@ describe("TableBasedCallCredentials", () => {
             describe("other object is an instance of TableBasedCallCredentials", () => {
                 describe("username and password are the same", () => {
                     it("returns true", () => {
-                        const a = new TableBasedCallCredentials('foo', 'bar');
-                        const b = new TableBasedCallCredentials('foo','bar');
+                        const a = new TableBasedCallCredentials({username: 'foo', password: 'bar'});
+                        const b = new TableBasedCallCredentials({username: 'foo', password: 'bar'});
                         const result = a._equals(b);
                         expect(result).toBe(true);
                     })
                 })
                 describe("username equal, password different", ()=> {
                     it("returns false", () => {
-                        const a = new TableBasedCallCredentials('foo', 'bar');
-                        const b = new TableBasedCallCredentials('foo','baz');
+                        const a = new TableBasedCallCredentials({username: 'foo', password: 'bar'});
+                        const b = new TableBasedCallCredentials({username: 'foo', password: 'baz'});
                         const result = a._equals(b);
                         expect(result).toBe(false);
                     })
                 })
                 describe("username different, password equal", () => {
-                    const a = new TableBasedCallCredentials('fooo', 'bar');
-                    const b = new TableBasedCallCredentials('foo','bar');
+                    const a = new TableBasedCallCredentials({username: 'fooo', password: 'bar'});
+                    const b = new TableBasedCallCredentials({username: 'foo', password: 'bar'});
                     const result = a._equals(b);
                     expect(result).toBe(false);
                 })
