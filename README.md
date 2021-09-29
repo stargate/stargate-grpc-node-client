@@ -25,7 +25,7 @@ docker run --name stargate \
   -e CLUSTER_NAME=stargate \
   -e CLUSTER_VERSION=3.11 \
   -e DEVELOPER_MODE=true \
-  stargateio/stargate-3_11:v1.0.29
+  stargateio/stargate-3_11:v1.0.32
 ```
 
 Once the container is running, use this command to get an auth token:
