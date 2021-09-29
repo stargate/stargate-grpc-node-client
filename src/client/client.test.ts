@@ -1,10 +1,11 @@
-import {blobToString, toDate, toResultSet, toUUID} from "./client";
+import {blobToString, toDate, toUUID} from "./client";
 import {TableBasedCallCredentials} from "../auth/auth";
 import {GenericContainer, StartedTestContainer} from "testcontainers";
-import { Collection, Decimal, Payload, Query, QueryParameters, Response, TypeSpec, Uuid} from '../proto/query_pb';
+import { Collection, Decimal, Payload, Query, QueryParameters, Response, ResultSet, TypeSpec, Uuid} from '../proto/query_pb';
 import * as grpc from '@grpc/grpc-js';
 import { StargateClient } from "../proto/stargate_grpc_pb";
 import { Any } from "google-protobuf/google/protobuf/any_pb";
+import { toResultSet } from "../util";
 
 describe('Stargate gRPC client integration tests', ()=> {
     jest.setTimeout(40000);
@@ -47,7 +48,7 @@ describe('Stargate gRPC client integration tests', ()=> {
 
             const response = await promisifiedQuery(query, metadata) as Response;
 
-            const resultSet = toResultSet(response);
+            const resultSet = toResultSet(response) as ResultSet;
             expect(resultSet.getColumnsList().length).toEqual(18);
             const rowList = resultSet.getRowsList();
             expect(rowList.length).toEqual(1);
@@ -72,7 +73,7 @@ describe('Stargate gRPC client integration tests', ()=> {
 
             const response = await promisifiedQuery(query, metadata) as Response;
 
-            const resultSet = toResultSet(response);
+            const resultSet = toResultSet(response) as ResultSet;
             expect(resultSet.getColumnsList().length).toEqual(9);
 
             // Check the first column returned
@@ -206,7 +207,7 @@ describe('Stargate gRPC client integration tests', ()=> {
             selectAllQuery.setCql("select * from ks1.tbl1");
 
             const selectAllResponse = await promisifiedQuery(selectAllQuery, metadata) as Response;
-            const resultSet = toResultSet(selectAllResponse);
+            const resultSet = toResultSet(selectAllResponse) as ResultSet;
 
             const firstRow = resultSet.getRowsList()[0];
 
@@ -344,7 +345,7 @@ describe('Stargate gRPC client integration tests', ()=> {
             selectAllWithIdQuery.setCql("select * from ks1.tbl1 where id = f066f76d-5e96-4b52-8d8a-0f51387df76b;");
 
             const selectAllWithIdResponse = await promisifiedQuery(selectAllWithIdQuery, metadata) as Response;
-            const selectAllWithIdResultSet = toResultSet(selectAllWithIdResponse);
+            const selectAllWithIdResultSet = toResultSet(selectAllWithIdResponse) as ResultSet;
 
             const firstRowOfResult = selectAllWithIdResultSet.getRowsList()[0];
 
@@ -380,7 +381,7 @@ describe('Stargate gRPC client integration tests', ()=> {
 
             const response = await promisifiedQuery(query, metadata) as Response;
 
-            const resultSet = toResultSet(response);
+            const resultSet = toResultSet(response) as ResultSet;
 
             const rows = resultSet.getRowsList();
             expect(rows.length).toBe(1);
@@ -392,7 +393,7 @@ describe('Stargate gRPC client integration tests', ()=> {
             // Or...
             
             stargateClient.executeQuery(query, metadata, (err, response) => {
-                const resultSet = toResultSet(response as Response);
+                const resultSet = toResultSet(response as Response) as ResultSet;
 
                 const rows = resultSet.getRowsList();
                 expect(rows.length).toBe(1);
@@ -412,7 +413,7 @@ describe('Stargate gRPC client integration tests', ()=> {
 const executeQueryPromisified = (client: StargateClient) => {
     return (message: Query, metadata: grpc.Metadata) => {
         return new Promise((resolve, reject) => {
-            client.executeQuery(message, metadata, (error, value) => {
+            client.executeQuery(message, metadata, (error: grpc.ServiceError | null, value?: Response) => {
                 if (error) reject (error);
                 resolve(value);
             })            
