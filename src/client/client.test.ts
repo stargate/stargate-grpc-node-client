@@ -1,6 +1,6 @@
 import { blobToString, toUUID } from "./client";
 import { TableBasedCallCredentials } from "../auth/auth";
-import { GenericContainer, StartedTestContainer } from "testcontainers";
+import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
 import {
   Collection,
   Payload,
@@ -17,6 +17,7 @@ import { Any } from "google-protobuf/google/protobuf/any_pb";
 import { toResultSet } from "../util";
 
 describe("Stargate gRPC client integration tests", () => {
+  // Two minutes should be plenty to spin up the Stargate container
   jest.setTimeout(120000);
   describe("sendQuery", () => {
     let container: StartedTestContainer;
@@ -30,7 +31,7 @@ describe("Stargate gRPC client integration tests", () => {
         .withEnv("DEVELOPER_MODE", "true")
         .withEnv("ENABLE_AUTH", "true")
         .withExposedPorts(8081, 8084, 8090)
-        // TODO: set a waiting strategy
+        .withWaitStrategy(Wait.forLogMessage(/Finished starting bundles./i))
         .start();
 
       const containerHost = container.getHost();
