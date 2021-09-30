@@ -45,10 +45,15 @@ Now make a gRPC call in your code:
 The `TableBasedCallCredentials` class generates gRPC metadata with an auth token from [the Stargate Auth API](https://stargate.io/docs/stargate/1.0/developers-guide/auth.html). Construct an instance using the username and password of a user in your Cassandra database, then call the `generateMetadata` method with the location of your Stargate instance's auth endpoint:
 
 ```typescript
-const stargateCallCredentials = new TableBasedCallCredentials({username: 'cassandra', password: 'cassandra'});
+const stargateCallCredentials = new TableBasedCallCredentials({
+  username: "cassandra",
+  password: "cassandra",
+});
 
 try {
-  const stargateAuthMetadata = await stargateCallCredentials.generateMetadata({service_url: 'http://localhost:8081/v1/auth'});
+  const stargateAuthMetadata = await stargateCallCredentials.generateMetadata({
+    service_url: "http://localhost:8081/v1/auth",
+  });
 } catch (e) {
   // Something went wrong calling the auth endpoint
   throw e;
@@ -64,19 +69,27 @@ You can reuse the same `TableBasedCallCredentials` instance but should call `gen
 Create a `StargateClient` instance with the address of your gRPC server and any credentials needed to connect. Note Stargate exposes port 8090 for gRPC traffic by default:
 
 ```typescript
-const stargateClient = new StargateClient('localhost:8090', grpc.credentials.createInsecure());
+const stargateClient = new StargateClient(
+  "localhost:8090",
+  grpc.credentials.createInsecure()
+);
 ```
 
 The client follows the `@grpc/grpc-js` callback style for sending queries and batches:
 
 ```typescript
-stargateClient.executeQuery(query, authenticationMetadata, (error: grpc.ServiceError | null, value?: Response) => {
-  if (error) {
-    // something went wrong
-  } if (value) {
-    // the call succeeded
+stargateClient.executeQuery(
+  query,
+  authenticationMetadata,
+  (error: grpc.ServiceError | null, value?: Response) => {
+    if (error) {
+      // something went wrong
+    }
+    if (value) {
+      // the call succeeded
+    }
   }
-});
+);
 ```
 
 ### Working with responses
@@ -90,11 +103,11 @@ If you expect a ResultSet in your response, this library offers a utility method
 const resultSet = toResultSet(value);
 if (resultSet) {
   const rowsReturned = resultSet.getRowsList();
-  rowsReturned.forEach(row, index => {
+  rowsReturned.forEach(row, (index) => {
     const valuesInThisRow = row.getValuesList();
     const firstValueInRow = row.getValuesList()[0].getString(); // assume we know/expect this is a string value based on our query
     console.log(`First value in row ${index}: ${firstValueInRow}`);
-  })
+  });
 }
 ```
 
@@ -143,7 +156,6 @@ curl -L -X POST 'http://localhost:8081/v1/auth' \
   - At least the UUID type will need this; `getUUID()` returns an object like `{"array": [17322805065837595000, 10198981147648457000], "arrayIndexOffset_": -1, "convertedPrimitiveFields_": {}, "messageId_": undefined, "pivot_": 1.7976931348623157e+308, "wrappers_": null}` - need to do the MSB and LSB work like the Go client
   - Also for converting blobs back to strings
 
-
 ### TODO
 
 - The `gen` script uses [grpc-tools](https://github.com/grpc/grpc-node/tree/master/packages/grpc-tools) with [the ts-protoc-gen plugin](https://github.com/improbable-eng/ts-protoc-gen) to generate files, including TS definition files. This uses a not-super-idiomatic getter/setter convention. There's another library, [protoc-gen-ts](https://github.com/thesayyn/protoc-gen-ts), that generates TS files directly (instead of JS with definition files). This is more idiomatic but it doesn't support our current proto file, because it chokes when given a file with a `Map` message type and other messages that use the primitive `map` type. [I've opened an issue](https://github.com/thesayyn/protoc-gen-ts/issues/88) but have yet to hear back.
@@ -155,7 +167,6 @@ curl -L -X POST 'http://localhost:8081/v1/auth' \
 - Split out unit and integration tests
 
 - Add some GH workflow config to run tests on push
-
 
 - Add more integration tests based on Go library
 - Add some code quality stuff like a linter
