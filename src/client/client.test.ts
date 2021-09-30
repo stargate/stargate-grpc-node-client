@@ -1,9 +1,8 @@
-import { blobToString, toDate, toUUID } from "./client";
+import { blobToString, toUUID } from "./client";
 import { TableBasedCallCredentials } from "../auth/auth";
 import { GenericContainer, StartedTestContainer } from "testcontainers";
 import {
   Collection,
-  Decimal,
   Payload,
   Query,
   QueryParameters,

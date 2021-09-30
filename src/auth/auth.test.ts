@@ -14,9 +14,7 @@ describe("TableBasedCallCredentials", () => {
             password: "bar",
           });
 
-          const scope = nock(MOCK_SERVICE_ENDPOINT)
-            .post("")
-            .reply(200, { authToken: "xyz" });
+          nock(MOCK_SERVICE_ENDPOINT).post("").reply(200, { authToken: "xyz" });
 
           const metadata = await credentials.generateMetadata({
             service_url: MOCK_SERVICE_ENDPOINT,
@@ -48,9 +46,7 @@ describe("TableBasedCallCredentials", () => {
           password: "bar",
         }).compose(new DummyCallCredentials());
 
-        const scope = nock(MOCK_SERVICE_ENDPOINT)
-          .post("")
-          .reply(200, { authToken: "xyz" });
+        nock(MOCK_SERVICE_ENDPOINT).post("").reply(200, { authToken: "xyz" });
 
         const metadata = await credentials.generateMetadata({
           service_url: MOCK_SERVICE_ENDPOINT,
