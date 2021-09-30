@@ -492,18 +492,6 @@ describe("Stargate gRPC client integration tests", () => {
 
       const firstRowFirstValue = rows[0].getValuesList()[0];
       expect(firstRowFirstValue.getString()).toBe("system");
-
-      // Or...
-
-      stargateClient.executeQuery(query, metadata, (err, response) => {
-        const resultSet = toResultSet(response as Response) as ResultSet;
-
-        const rows = resultSet.getRowsList();
-        expect(rows.length).toBe(1);
-
-        const firstRowFirstValue = rows[0].getValuesList()[0];
-        expect(firstRowFirstValue.getString()).toBe("system");
-      });
     });
   });
 });
