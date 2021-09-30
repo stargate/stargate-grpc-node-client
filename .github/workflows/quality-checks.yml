@@ -1,0 +1,14 @@
+name: Quality Checks
+on: [push]
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Install
+        run: npm ci
+      - name: Lint
+        run : npm run lint
+      - name: Test
+        run: npm test
