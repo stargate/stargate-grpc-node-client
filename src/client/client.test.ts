@@ -17,7 +17,7 @@ import { Any } from "google-protobuf/google/protobuf/any_pb";
 import { toResultSet } from "../util";
 
 describe("Stargate gRPC client integration tests", () => {
-  jest.setTimeout(40000);
+  jest.setTimeout(120000);
   describe("sendQuery", () => {
     let container: StartedTestContainer;
     let authEndpoint: string;
