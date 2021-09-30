@@ -94,7 +94,7 @@ stargateClient.executeQuery(
 
 ### Promise support
 
-If you'd prefer promises over callbacks, this library provides a utility function to create a promisified version of the Stargate gRPC client:
+If you'd prefer promises over callbacks, this library provides a utility function to create a promisified version of the Stargate gRPC client. The promise will reject if an error occurs:
 
 ```typescript
 import {
@@ -108,17 +108,20 @@ const stargateClient = new StargateClient(
 );
 
 const promisifiedClient = promisifyStargateClient(stargateClient);
-
-const queryResult = await promisifiedClient.executeQuery(
-  query,
-  metadata,
-  callOptions
-);
-const batchResult = await promisifiedClient.executeBatch(
-  query,
-  metadata,
-  callOptions
-);
+try {
+  const queryResult = await promisifiedClient.executeQuery(
+    query,
+    metadata,
+    callOptions
+  );
+  const batchResult = await promisifiedClient.executeBatch(
+    query,
+    metadata,
+    callOptions
+  );
+} catch (e) {
+  // something went wrong
+}
 ```
 
 The `metadata` and `callOptions` arguments are both optional.
