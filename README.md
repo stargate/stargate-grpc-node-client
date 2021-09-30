@@ -92,6 +92,37 @@ stargateClient.executeQuery(
 );
 ```
 
+### Promise support
+
+If you'd prefer promises over callbacks, this library provides a utility function to create a promisified version of the Stargate gRPC client:
+
+```typescript
+import {
+  StargateClient,
+  promisifyStargateClient,
+} from "@stargate/stargate-grpc-node-client";
+
+const stargateClient = new StargateClient(
+  "localhost:8090",
+  grpc.credentials.createInsecure()
+);
+
+const promisifiedClient = promisifyStargateClient(stargateClient);
+
+const queryResult = await promisifiedClient.executeQuery(
+  query,
+  metadata,
+  callOptions
+);
+const batchResult = await promisifiedClient.executeBatch(
+  query,
+  metadata,
+  callOptions
+);
+```
+
+The `metadata` and `callOptions` arguments are both optional.
+
 ### Working with responses
 
 A response will contain a `ResultSet` object if you sent CQL that should return data, or a `SchemaChange` object if your query should have changed the CQL schema. It will never return both.
@@ -115,19 +146,18 @@ if (resultSet) {
 
 ### Reading primitive values
 
-Individual values from queries will be returned as a `Value` object. These objects have boolean `hasX()` methods, where X is the possible type of a value. 
+Individual values from queries will be returned as a `Value` object. These objects have boolean `hasX()` methods, where X is the possible type of a value.
 
 There are corresponding `getX()` methods on the `Value` type that will return the value, if present. If the value does not represent type X, calling `getX()` will not return an error. You'll get `undefined` or another falsy value based on the expected data type.
 
 ```typescript
-const firstValueInRow = row.getValuesList()[0] // Assume we know this is a string
+const firstValueInRow = row.getValuesList()[0]; // Assume we know this is a string
 
 const isString = firstValueInRow.hasString(); // will resolve to true
 const stringValue = firstValueInRow.getString(); // will resolve to the string value
 
 const isInt = firstValueInRow.hasInt(); // false
 const intValue = firstValueInRow.getInt(); // 0 - zero value for this data type
-
 ```
 
 ## Issue Management
