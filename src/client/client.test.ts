@@ -1,4 +1,4 @@
-import { blobToString, toUUID } from "./client";
+import { blobToString, toUUID } from "../util/util";
 import { TableBasedCallCredentials } from "../auth/auth";
 import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
 import {
