@@ -2,11 +2,6 @@ import axios, { AxiosInstance } from "axios";
 import { CallCredentials, Metadata } from "@grpc/grpc-js";
 import { CallMetadataOptions } from "@grpc/grpc-js/build/src/call-credentials";
 
-interface AuthToken {
-  value: string;
-  exp: string;
-}
-
 interface TableBasedCallCredentialsConfig {
   username: string;
   password: string;
@@ -69,16 +64,12 @@ export class TableBasedCallCredentials extends CallCredentials {
     options: CallMetadataOptions
   ): Promise<Metadata> {
     const { service_url } = options;
-    try {
-      const postBody = { username: this.#username, password: this.#password };
-      const authResponse = await this.httpClient.post(service_url, postBody);
+    const postBody = { username: this.#username, password: this.#password };
+    const authResponse = await this.httpClient.post(service_url, postBody);
 
-      const metadata = new Metadata();
-      metadata.set("x-cassandra-token", authResponse.data.authToken);
+    const metadata = new Metadata();
+    metadata.set("x-cassandra-token", authResponse.data.authToken);
 
-      return metadata;
-    } catch (e) {
-      throw e;
-    }
+    return metadata;
   }
 }
