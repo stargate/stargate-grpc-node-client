@@ -1,4 +1,4 @@
-import { Uuid } from '../proto/query_pb';
+import { Uuid } from "../proto/query_pb";
 /**
  * TODO: Implement this for real
  * It should take a Value and not require unwrapping to a UUID

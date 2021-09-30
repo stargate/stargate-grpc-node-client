@@ -1,3 +1,2 @@
-import { Response, ResultSet } from '../proto/query_pb';
-export declare const toResultSet: (response: Response) => ResultSet | undefined;
+export { toResultSet } from "./util";
 //# sourceMappingURL=index.d.ts.map

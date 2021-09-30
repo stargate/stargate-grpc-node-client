@@ -1,0 +1,1 @@
+export { TableBasedCallCredentials } from "./auth";

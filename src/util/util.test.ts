@@ -1,6 +1,6 @@
 import { Any } from "google-protobuf/google/protobuf/any_pb";
 import { Payload, Response, ResultSet } from "../proto/query_pb";
-import { toResultSet } from "./index";
+import { toResultSet } from "./util";
 
 describe("utils", () => {
   describe("toResultSet", () => {
