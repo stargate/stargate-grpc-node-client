@@ -425,49 +425,5 @@ describe("Stargate gRPC client integration tests", () => {
       expect(newasciiValue.hasString()).toBe(true);
       expect(newasciiValue.getString()).toBe("echo");
     });
-    it.skip("Supports paramaterized queries", async () => {
-      const tableBasedCallCredentials = new TableBasedCallCredentials({
-        username: "cassandra",
-        password: "cassandra",
-      });
-      const metadata = await tableBasedCallCredentials.generateMetadata({
-        service_url: authEndpoint,
-      });
-
-      const stargateClient = new StargateClient(
-        grpcEndpoint,
-        grpc.credentials.createInsecure()
-      );
-
-      const promisifiedClient = promisifyStargateClient(stargateClient);
-
-      const query = new Query();
-      query.setCql(
-        "select * from system_schema.keyspaces where keyspace_name = ?"
-      );
-
-      const payload = new Payload();
-      payload.setType(0);
-      const any = new Any();
-      any.setValue("system");
-      payload.setData(any);
-
-      const queryParameters = new QueryParameters();
-      queryParameters.setTracing(false);
-      queryParameters.setSkipMetadata(false);
-
-      query.setValues(payload);
-      query.setParameters(queryParameters);
-
-      const response = await promisifiedClient.executeQuery(query, metadata);
-
-      const resultSet = toResultSet(response) as ResultSet;
-
-      const rows = resultSet.getRowsList();
-      expect(rows.length).toBe(1);
-
-      const firstRowFirstValue = rows[0].getValuesList()[0];
-      expect(firstRowFirstValue.getString()).toBe("system");
-    });
   });
 });
