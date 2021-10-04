@@ -37,7 +37,38 @@ Ensure the local instance of Stargate is running properly by tailing the logs fo
 Now make a gRPC call in your code:
 
 ```typescript
-// TODO: fill this in when it's pretty
+import * as grpc from "@grpc/grpc-js";
+import { StargateClient, TableBasedCallCredentials, Query, toResultSet, Response, promisifyStargateClient } from "@stargate/stargate-grpc-node-client";
+
+// Create a client for Stargate/Cassandra authentication using the default C* username and password
+const creds = new TableBasedCallCredentials({username: 'cassandra', password: 'cassandra'});
+
+// Create the gRPC client, passing it the address of the gRPC endpoint
+const stargateClient = new StargateClient('localhost:8090', grpc.credentials.createInsecure());
+
+// Create a promisified version of the client, so we don't need to use callbacks
+const promisifiedClient = promisifyStargateClient(stargateClient);
+
+try {
+
+    const authenticationMetadata = await creds.generateMetadata({service_url: 'http://localhost:8081/v1/auth'});
+
+    const query = new Query();
+    query.setCql('select cluster_name from system.local');
+
+    const result: Response = await promisifiedClient.executeQuery(query, authenticationMetadata);
+    
+    const resultSet = toResultSet(result);
+
+    if (resultSet) {
+        const firstRowReturned = resultSet.getRowsList()[0];
+        const clusterName = firstRowReturned.getValuesList()[0].getString();
+        console.log(`cluster name returned from gRPC call: ${clusterName}`);
+    }
+
+} catch (e) {
+    console.error(`Error making gRPC call: ${e}`)
+}
 ```
 
 ### Authentication
@@ -162,6 +193,10 @@ const stringValue = firstValueInRow.getString(); // will resolve to the string v
 const isInt = firstValueInRow.hasInt(); // false
 const intValue = firstValueInRow.getInt(); // 0 - zero value for this data type
 ```
+
+### Example uses
+
+See the integration tests at `src/client/client.test.ts` for more example uses of this client. The [DEV_GUIDE.md](DEV_GUIDE.md) has instructions on how to run the integration tests locally as well.
 
 ## Issue Management
 
