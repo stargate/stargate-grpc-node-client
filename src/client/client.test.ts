@@ -1,4 +1,4 @@
-import { blobToString, toResultSet, toUUID } from "../util/util";
+import { toResultSet } from "../util/util";
 import { promisifyStargateClient } from "../util/promise";
 import { TableBasedCallCredentials } from "../auth/auth";
 import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
@@ -7,10 +7,8 @@ import {
   Payload,
   Query,
   QueryParameters,
-  Response,
   ResultSet,
   TypeSpec,
-  Uuid,
 } from "../proto/query_pb";
 import * as grpc from "@grpc/grpc-js";
 import { StargateClient } from "../proto/stargate_grpc_pb";
@@ -105,7 +103,6 @@ describe("Stargate gRPC client integration tests", () => {
       const resultSet = toResultSet(response) as ResultSet;
       expect(resultSet.getColumnsList().length).toEqual(9);
 
-      // Check the first column returned
       const firstColumnSpec = resultSet.getColumnsList()[0];
 
       const expectedTypeSpec = new TypeSpec();
@@ -290,9 +287,6 @@ describe("Stargate gRPC client integration tests", () => {
       ] = firstRow.getValuesList();
 
       expect(id.hasUuid()).toBe(true);
-      expect(toUUID(id.getUuid() as Uuid)).toEqual(
-        "f066f76d-5e96-4b52-8d8a-0f51387df76b"
-      );
 
       expect(asciivalue.hasString()).toBe(true);
       expect(asciivalue.getString()).toBe("alpha");
@@ -301,44 +295,31 @@ describe("Stargate gRPC client integration tests", () => {
       expect(bigintvalue.getInt()).toBe(1);
 
       expect(blobvalue.hasBytes()).toBe(true);
-      const blobAsString = blobToString(blobvalue.getBytes_asU8());
-      expect(blobAsString).toEqual("foo");
 
       expect(booleanvalue.hasBoolean()).toBe(true);
       expect(booleanvalue.getBoolean()).toBe(true);
 
       expect(datevalue.hasDate()).toBe(true);
 
-      /**
-       * TODO: This number is the # of days since epoch time,
-       * with epoch starting at 2 ^31.
-       * Should we expose a method to turn that into a Date object?
-       * (I'm worried about timezones)
-       */
       const asDate = datevalue.getDate();
       expect(asDate).toEqual(2147502525);
 
       expect(decimalvalue.hasDecimal()).toBe(true);
-      // TODO: How to map decimals here?
 
       expect(doublevalue.hasDouble()).toBe(true);
       expect(doublevalue.getDouble()).toBe(2.2);
 
       expect(floatvalue.hasFloat()).toBe(true);
       /**
-       * TODO: We inserted 3.3 but JS floating-point precision is wacky.
-       * It looks like this is an issue with JS/the grpc library; not sure
-       * we can solve it.
+       * JS floating-point precision causes this issue; it's not something
+       * our client can solve.
        * https://github.com/grpc/grpc/issues/2227
        */
       expect(floatvalue.getFloat()).toBe(3.299999952316284);
 
       expect(inetvalue.hasBytes()).toBe(true);
       const inetBytes = inetvalue.getBytes();
-      /**
-       * TODO: surely there's a better way to do this,
-       * but the blobToString helper gives us an empty string...
-       */
+
       expect(inetBytes.length).toBe(4);
       expect(inetBytes[0]).toBe(127);
       expect(inetBytes[1]).toBe(0);
@@ -361,10 +342,6 @@ describe("Stargate gRPC client integration tests", () => {
       const mapCollection = mapvalue.getCollection() as Collection;
       const valuesInMapCollection = mapCollection.getElementsList();
 
-      /**
-       * TODO: Is there any way to do this generically, so we could just
-       * create a map for them?
-       */
       expect(valuesInMapCollection[0].getInt()).toBe(1);
       expect(valuesInMapCollection[1].getString()).toBe("a");
       expect(valuesInMapCollection[2].getInt()).toBe(2);
@@ -391,8 +368,6 @@ describe("Stargate gRPC client integration tests", () => {
       expect(timestampvalue.getInt()).toBe(1631032831123);
 
       expect(timeUUIDvalue.hasUuid()).toBe(true);
-      // TODO: received is 3495380673717146000,12520290924444647000, think we need UUID conversion here
-      //            expect((timeUUIDvalue.getUuid() as Uuid).toString()).toBe("30821634-13ad-11eb-adc1-0242ac120002")
 
       expect(timevalue.hasTime()).toBe(true);
       expect(timevalue.getTime()).toBe(0x219676e3e115);
@@ -408,8 +383,7 @@ describe("Stargate gRPC client integration tests", () => {
       expect(firstTupleItem.getInt()).toBe(3);
       expect(secondTupleItem.getString()).toBe("bar");
       /**
-       * TODO: Again, JS floating-point numbers. Not sure it's safe
-       * to send any floating-point numbers via Node...
+       * Again, JS floating-point precision issue.
        */
       expect(thirdTupleItem.getFloat()).toBe(2.0999999046325684);
 
@@ -417,7 +391,6 @@ describe("Stargate gRPC client integration tests", () => {
       expect(string.getString()).toEqual("charlie");
 
       expect(varint.hasVarint()).toBe(true);
-      // TODO: need to convert this to a number...
 
       const updateQuery = new Query();
       updateQuery.setCql(
