@@ -14,10 +14,7 @@
     "compile": "tsc",
     "postcompile": "npm run copy-grpc-typedefs",
     "copy-grpc-typedefs": "cp -rp src/proto/*d.ts lib/proto",
-    "prestart": "npm run gen && npm run compile",
-    "start": "node lib/index.js",
     "lint": "npx eslint . --ext .js,.ts",
-    "trace": "GRPC_TRACE=all GRPC_VERBOSITY=debug node lib/index.js",
     "gen": "grpc_tools_node_protoc --proto_path=proto --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts --plugin=protoc-gen-grpc=./node_modules/.bin/grpc_tools_node_protoc_plugin --grpc_out=grpc_js:src/proto --js_out=import_style=commonjs,binary:src/proto --ts_out=service=grpc-node,mode=grpc-js:src/proto proto/query.proto proto/stargate.proto"
   },
   "author": "DataStax",
