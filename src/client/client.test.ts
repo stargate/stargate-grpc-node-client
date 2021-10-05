@@ -7,7 +7,6 @@ import { TableBasedCallCredentials } from "../auth/auth";
 import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
 import {
   Batch,
-  BatchParameters,
   BatchQuery,
   Collection,
   Inet,
@@ -17,7 +16,6 @@ import {
 } from "../proto/query_pb";
 import * as grpc from "@grpc/grpc-js";
 import { StargateClient } from "../proto/stargate_grpc_pb";
-import { StringValue } from "google-protobuf/google/protobuf/wrappers_pb";
 
 describe("Stargate gRPC client integration tests", () => {
   // Two minutes should be plenty to spin up the Stargate container
