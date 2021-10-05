@@ -1,51 +1,55 @@
 import { toResultSet } from "../util/util";
-import { promisifyStargateClient } from "../util/promise";
+import {
+  PromisifiedStargateClient,
+  promisifyStargateClient,
+} from "../util/promise";
 import { TableBasedCallCredentials } from "../auth/auth";
 import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
 import {
+  Batch,
+  BatchParameters,
+  BatchQuery,
   Collection,
   Inet,
-  Payload,
   Query,
-  QueryParameters,
   ResultSet,
   TypeSpec,
 } from "../proto/query_pb";
 import * as grpc from "@grpc/grpc-js";
 import { StargateClient } from "../proto/stargate_grpc_pb";
-import { Any } from "google-protobuf/google/protobuf/any_pb";
+import { StringValue } from "google-protobuf/google/protobuf/wrappers_pb";
 
 describe("Stargate gRPC client integration tests", () => {
   // Two minutes should be plenty to spin up the Stargate container
   jest.setTimeout(120000);
-  describe("sendQuery", () => {
-    let container: StartedTestContainer;
-    let authEndpoint: string;
-    let grpcEndpoint: string;
+  let container: StartedTestContainer;
+  let authEndpoint: string;
+  let grpcEndpoint: string;
 
-    beforeAll(async () => {
-      container = await new GenericContainer("stargateio/stargate-3_11:v1.0.35")
-        .withEnv("CLUSTER_NAME", "test")
-        .withEnv("CLUSTER_VERSION", "3.11")
-        .withEnv("DEVELOPER_MODE", "true")
-        .withEnv("ENABLE_AUTH", "true")
-        .withExposedPorts(8081, 8084, 8090)
-        .withWaitStrategy(Wait.forLogMessage(/Finished starting bundles./i))
-        .start();
+  beforeAll(async () => {
+    container = await new GenericContainer("stargateio/stargate-3_11:v1.0.35")
+      .withEnv("CLUSTER_NAME", "test")
+      .withEnv("CLUSTER_VERSION", "3.11")
+      .withEnv("DEVELOPER_MODE", "true")
+      .withEnv("ENABLE_AUTH", "true")
+      .withExposedPorts(8081, 8084, 8090)
+      .withWaitStrategy(Wait.forLogMessage(/Finished starting bundles./i))
+      .start();
 
-      const containerHost = container.getHost();
-      authEndpoint = `http://${containerHost}:${container.getMappedPort(
-        8081
-      )}/v1/auth`;
-      grpcEndpoint = `${containerHost}:${container.getMappedPort(8090)}`;
-    });
+    const containerHost = container.getHost();
+    authEndpoint = `http://${containerHost}:${container.getMappedPort(
+      8081
+    )}/v1/auth`;
+    grpcEndpoint = `${containerHost}:${container.getMappedPort(8090)}`;
+  });
 
-    afterAll(async () => {
-      if (container) {
-        await container.stop();
-      }
-    });
+  afterAll(async () => {
+    if (container) {
+      await container.stop();
+    }
+  });
 
+  describe("executeQuery", () => {
     it("supports basic queries", async () => {
       const tableBasedCallCredentials = new TableBasedCallCredentials({
         username: "cassandra",
@@ -425,6 +429,69 @@ describe("Stargate gRPC client integration tests", () => {
 
       expect(newasciiValue.hasString()).toBe(true);
       expect(newasciiValue.getString()).toBe("echo");
+    });
+  });
+  describe("executeBatch", () => {
+    let tableBasedCallCredentials: TableBasedCallCredentials;
+    let metadata: grpc.Metadata;
+    let promisifiedClient: PromisifiedStargateClient;
+
+    const KEYSPACE = "batch_test";
+
+    beforeAll(async () => {
+      tableBasedCallCredentials = new TableBasedCallCredentials({
+        username: "cassandra",
+        password: "cassandra",
+      });
+
+      metadata = await tableBasedCallCredentials.generateMetadata({
+        service_url: authEndpoint,
+      });
+
+      const stargateClient = new StargateClient(
+        grpcEndpoint,
+        grpc.credentials.createInsecure()
+      );
+
+      promisifiedClient = promisifyStargateClient(stargateClient);
+
+      const createKeyspaceQuery = new Query();
+      createKeyspaceQuery.setCql(
+        `CREATE KEYSPACE ${KEYSPACE} WITH REPLICATION = { 'class': 'SimpleStrategy', 'replication_factor': 1}`
+      );
+
+      await promisifiedClient.executeQuery(createKeyspaceQuery, metadata);
+    });
+
+    it("supports sending multiple queries", async () => {
+      const createTableQuery = new Query();
+      createTableQuery.setCql(
+        `CREATE TABLE ${KEYSPACE}.test (key text, value int, PRIMARY KEY(key, value))`
+      );
+
+      await promisifiedClient.executeQuery(createTableQuery, metadata);
+
+      const insertOne = new BatchQuery();
+      const insertTwo = new BatchQuery();
+
+      insertOne.setCql(
+        `INSERT INTO ${KEYSPACE}.test (key, value) VALUES('a', 1)`
+      );
+      insertTwo.setCql(
+        `INSERT INTO ${KEYSPACE}.test (key, value) VALUES('b', 2)`
+      );
+
+      const batch = new Batch();
+      batch.setQueriesList([insertOne, insertTwo]);
+
+      await promisifiedClient.executeBatch(batch, metadata);
+
+      const query = new Query();
+
+      query.setCql(`SELECT * FROM ${KEYSPACE}.test`);
+
+      const result = await promisifiedClient.executeQuery(query, metadata);
+      expect(result.hasResultSet()).toBe(true);
     });
   });
 });
