@@ -4,6 +4,7 @@ import { TableBasedCallCredentials } from "../auth/auth";
 import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
 import {
   Collection,
+  Inet,
   Payload,
   Query,
   QueryParameters,
@@ -317,8 +318,8 @@ describe("Stargate gRPC client integration tests", () => {
        */
       expect(floatvalue.getFloat()).toBe(3.299999952316284);
 
-      expect(inetvalue.hasBytes()).toBe(true);
-      const inetBytes = inetvalue.getBytes();
+      expect(inetvalue.hasInet()).toBe(true);
+      const inetBytes = (inetvalue.getInet() as Inet).getValue_asU8();
 
       expect(inetBytes.length).toBe(4);
       expect(inetBytes[0]).toBe(127);

@@ -67,11 +67,10 @@ export namespace UdtValue {
 }
 
 export class Uuid extends jspb.Message {
-  getMsb(): number;
-  setMsb(value: number): void;
-
-  getLsb(): number;
-  setLsb(value: number): void;
+  getValue(): Uint8Array | string;
+  getValue_asU8(): Uint8Array;
+  getValue_asB64(): string;
+  setValue(value: Uint8Array | string): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Uuid.AsObject;
@@ -85,8 +84,29 @@ export class Uuid extends jspb.Message {
 
 export namespace Uuid {
   export type AsObject = {
-    msb: number,
-    lsb: number,
+    value: Uint8Array | string,
+  }
+}
+
+export class Inet extends jspb.Message {
+  getValue(): Uint8Array | string;
+  getValue_asU8(): Uint8Array;
+  getValue_asB64(): string;
+  setValue(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Inet.AsObject;
+  static toObject(includeInstance: boolean, msg: Inet): Inet.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Inet, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Inet;
+  static deserializeBinaryFromReader(message: Inet, reader: jspb.BinaryReader): Inet;
+}
+
+export namespace Inet {
+  export type AsObject = {
+    value: Uint8Array | string,
   }
 }
 
@@ -181,6 +201,11 @@ export class Value extends jspb.Message {
   getBytes_asB64(): string;
   setBytes(value: Uint8Array | string): void;
 
+  hasInet(): boolean;
+  clearInet(): void;
+  getInet(): Inet | undefined;
+  setInet(value?: Inet): void;
+
   hasUuid(): boolean;
   clearUuid(): void;
   getUuid(): Uuid | undefined;
@@ -237,6 +262,7 @@ export namespace Value {
     pb_boolean: boolean,
     string: string,
     bytes: Uint8Array | string,
+    inet?: Inet.AsObject,
     uuid?: Uuid.AsObject,
     date: number,
     time: number,
@@ -288,13 +314,14 @@ export namespace Value {
     BOOLEAN = 6,
     STRING = 7,
     BYTES = 8,
-    UUID = 9,
-    DATE = 10,
-    TIME = 11,
-    COLLECTION = 12,
-    UDT = 13,
-    VARINT = 14,
-    DECIMAL = 15,
+    INET = 9,
+    UUID = 10,
+    DATE = 11,
+    TIME = 12,
+    COLLECTION = 13,
+    UDT = 14,
+    VARINT = 15,
+    DECIMAL = 16,
   }
 }
 
