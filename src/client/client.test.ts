@@ -1,8 +1,5 @@
-import { toResultSet } from "../util/util";
-import {
-  PromisifiedStargateClient,
-  promisifyStargateClient,
-} from "../util/promise";
+import { PromisifiedStargateClient } from "../util/promise";
+import { toResultSet, promisifyStargateClient, toUUIDString } from "../util";
 import { TableBasedCallCredentials } from "../auth/auth";
 import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
 import {
@@ -47,7 +44,7 @@ describe("Stargate gRPC client integration tests", () => {
     }
   });
 
-  describe("executeQuery", () => {
+  describe.only("executeQuery", () => {
     it("supports basic queries", async () => {
       const tableBasedCallCredentials = new TableBasedCallCredentials({
         username: "cassandra",
@@ -124,7 +121,7 @@ describe("Stargate gRPC client integration tests", () => {
       expect(asInt).toEqual(7776000);
       expect(resultSet.hasPagingState()).toBe(false);
     });
-    it("Supports full CRUD operations", async () => {
+    it.only("Supports full CRUD operations", async () => {
       const tableBasedCallCredentials = new TableBasedCallCredentials({
         username: "cassandra",
         password: "cassandra",
@@ -215,7 +212,7 @@ describe("Stargate gRPC client integration tests", () => {
                 setvalue,
                 tuplevalue
             ) values (
-                f066f76d-5e96-4b52-8d8a-0f51387df76b,
+              f066f76d-5e96-4b52-8d8a-0f51387df76b,
                 'alpha', 
                 'bravo',
                 'charlie',
@@ -290,6 +287,7 @@ describe("Stargate gRPC client integration tests", () => {
       ] = firstRow.getValuesList();
 
       expect(id.hasUuid()).toBe(true);
+      expect(toUUIDString(id)).toBe("f066f76d-5e96-4b52-8d8a-0f51387df76b");
 
       expect(asciivalue.hasString()).toBe(true);
       expect(asciivalue.getString()).toBe("alpha");
