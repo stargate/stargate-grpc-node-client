@@ -1,3 +1,3 @@
 export { toResultSet } from "./util";
 export { promisifyStargateClient } from "./promise";
-export { toUUIDString } from "./values";
+export { toCQLTime, toUUIDString } from "./values";

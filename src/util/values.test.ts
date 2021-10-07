@@ -1,6 +1,7 @@
 import { Uuid, Value } from "../proto/query_pb";
 
 import { toUUIDString } from ".";
+import { toCQLTime } from "./values";
 
 describe("Value-mapping functions", () => {
   describe("toUUIDString", () => {
@@ -34,6 +35,21 @@ describe("Value-mapping functions", () => {
           valueTwo.setUuid(uuidTwo);
 
           expect(toUUIDString(valueTwo)).toBe(uuidTwoAsString);
+        });
+      });
+    });
+  });
+  describe("toCQLTime", () => {
+    describe("value passed has time", () => {
+      it("properly converts the value to nanoseconds since midnight", () => {
+        const tests = [{ input: 0x219676e3e115, output: 36930123456789 }];
+
+        tests.forEach((testData) => {
+          const { input, output } = testData;
+          const value = new Value();
+          value.setTime(input);
+
+          expect(toCQLTime(value)).toBe(output);
         });
       });
     });

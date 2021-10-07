@@ -1,5 +1,10 @@
 import { PromisifiedStargateClient } from "../util/promise";
-import { toResultSet, promisifyStargateClient, toUUIDString } from "../util";
+import {
+  toResultSet,
+  promisifyStargateClient,
+  toCQLTime,
+  toUUIDString,
+} from "../util";
 import { TableBasedCallCredentials } from "../auth/auth";
 import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
 import {
@@ -369,9 +374,12 @@ describe("Stargate gRPC client integration tests", () => {
       expect(timestampvalue.getInt()).toBe(1631032831123);
 
       expect(timeUUIDvalue.hasUuid()).toBe(true);
+      expect(toUUIDString(timeUUIDvalue)).toBe(
+        "30821634-13ad-11eb-adc1-0242ac120002"
+      );
 
       expect(timevalue.hasTime()).toBe(true);
-      expect(timevalue.getTime()).toBe(0x219676e3e115);
+      expect(toCQLTime(timevalue)).toBe(36930123456789);
 
       expect(tinyint.hasInt()).toBe(true);
       expect(tinyint.getInt()).toBe(5);
