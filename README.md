@@ -131,28 +131,6 @@ createTableStatement.setCql("CREATE TABLE IF NOT EXISTS ks1.tbl2 (key text PRIMA
 await promisifiedClient.executeQuery(query, authenticationMetadata);
 ```
 
-Parameterized queries are also supported:
-
-```typescript
-const query = new Query();
-query.setCql("select * from system_schema.keyspaces where keyspace_name = ?");
-
-const payload = new Payload();
-payload.setType(0);
-const any = new Any();
-any.setValue("system");
-payload.setData(any);
-
-const queryParameters = new QueryParameters();
-queryParameters.setTracing(false);
-queryParameters.setSkipMetadata(false);
-
-query.setValues(payload);
-query.setParameters(queryParameters);
-
-await promisifiedClient.executeQuery(query, authenticationMetadata);
-```
-
 If you would like to use a [batch statement](https://cassandra.apache.org/doc/latest/cassandra/cql/dml.html#batch_statement), the client also provides an `executeBatch()` function for this purpose:
 
 ```typescript
@@ -185,7 +163,6 @@ const result = await promisifiedClient.executeQuery(read, authenticationMetadata
 
 const resultSet = toResultSet(result);
 
-// TODO: should this throw instead of returning undefined?
 if (resultSet) {
   const firstRow = resultSet.getRowsList()[0];
   // We call getString() here because we know the type being returned. See below for details on working with types.
