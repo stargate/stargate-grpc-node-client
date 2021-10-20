@@ -2,6 +2,7 @@ import { CallCredentials, Metadata } from "@grpc/grpc-js";
 import { CallMetadataOptions } from "@grpc/grpc-js/build/src/call-credentials";
 import nock from "nock";
 import { TableBasedCallCredentials } from "./auth";
+import { StargateBearerToken } from "./stargateBearerToken";
 const MOCK_SERVICE_ENDPOINT = "http://localhost:8081/v1/auth";
 
 describe("TableBasedCallCredentials", () => {
@@ -132,6 +133,55 @@ describe("TableBasedCallCredentials", () => {
           });
           const result = a._equals(b);
           expect(result).toBe(false);
+        });
+      });
+    });
+  });
+});
+describe("StargateBearerToken", () => {
+  describe("generateMetadata", () => {
+    describe("default scenario - only one metadata generator", () => {
+      it("returns a Metadata object with the token passed into the constructor", async () => {
+        const token = new StargateBearerToken("foo");
+        const metadata = await token.generateMetadata({ service_url: "" });
+
+        expect(metadata.get("x-cassandra-token")[0]).toBe("foo");
+      });
+    });
+  });
+  describe("_equals", () => {
+    describe("called with the same object", () => {
+      it("returns true", () => {
+        const token = new StargateBearerToken("foo");
+        const result = token._equals(token);
+        expect(result).toBe(true);
+      });
+    });
+    describe("called with another object", () => {
+      describe("other object is not an instance of StargateBearerToken", () => {
+        it("returns false", () => {
+          const token = new StargateBearerToken("foo");
+          const dummy = new DummyCallCredentials();
+          const result = token._equals(dummy);
+          expect(result).toBe(false);
+        });
+      });
+      describe("other object is an instance of StargateBeareerToken", () => {
+        describe("tokens are the same", () => {
+          it("returns true", () => {
+            const a = new StargateBearerToken("foo");
+            const b = new StargateBearerToken("foo");
+            const result = a._equals(b);
+            expect(result).toBe(true);
+          });
+        });
+        describe("tokens are different", () => {
+          it("returns false", () => {
+            const a = new StargateBearerToken("a");
+            const b = new StargateBearerToken("b");
+            const result = a._equals(b);
+            expect(result).toBe(false);
+          });
         });
       });
     });
