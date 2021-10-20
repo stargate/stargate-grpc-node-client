@@ -1,14 +1,16 @@
 import { CallCredentials, Metadata } from "@grpc/grpc-js";
 import { CallMetadataOptions } from "@grpc/grpc-js/build/src/call-credentials";
-import { StargateAuthMetadata } from "./StargateAuthMetadata";
 interface TabledBasedTokenConfig {
+  authEndpoint: string;
   username: string;
   password: string;
 }
-export declare class StargateTableBasedToken extends StargateAuthMetadata {
+export declare class StargateTableBasedToken extends CallCredentials {
   #private;
+  private metadataGenerators;
   private httpClient;
-  constructor({ username, password }: TabledBasedTokenConfig);
+  constructor({ authEndpoint, username, password }: TabledBasedTokenConfig);
+  generateMetadata(options: CallMetadataOptions): Promise<Metadata>;
   compose(callCredentials: CallCredentials): CallCredentials;
   _equals(other: CallCredentials): boolean;
   protected getStargateAuthMetadata(
