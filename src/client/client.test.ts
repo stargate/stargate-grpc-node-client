@@ -12,12 +12,17 @@ import {
   BatchQuery,
   Collection,
   Inet,
+  Payload,
   Query,
+  QueryParameters,
   ResultSet,
   TypeSpec,
+  Value,
+  Values,
 } from "../proto/query_pb";
 import * as grpc from "@grpc/grpc-js";
 import { StargateClient } from "../proto/stargate_grpc_pb";
+import { Any } from "google-protobuf/google/protobuf/any_pb";
 
 describe("Stargate gRPC client integration tests", () => {
   // Two minutes should be plenty to spin up the Stargate container
@@ -436,6 +441,58 @@ describe("Stargate gRPC client integration tests", () => {
 
       expect(newasciiValue.hasString()).toBe(true);
       expect(newasciiValue.getString()).toBe("echo");
+    });
+    it.skip("Supports paramaterized queries", async () => {
+      const tableBasedToken = new StargateTableBasedToken({
+        authEndpoint,
+        username: "cassandra",
+        password: "cassandra",
+      });
+      const metadata = await tableBasedToken.generateMetadata({
+        service_url: authEndpoint,
+      });
+
+      const stargateClient = new StargateClient(
+        grpcEndpoint,
+        grpc.credentials.createInsecure()
+      );
+
+      const promisifiedClient = promisifyStargateClient(stargateClient);
+
+      const query = new Query();
+      query.setCql(
+        "select * from system_schema.keyspaces where keyspace_name = ?"
+      );
+
+      const payload = new Payload();
+      payload.setType(0);
+
+      const keyspaceNameValue = new Value();
+      keyspaceNameValue.setString("system");
+
+      const queryValues = new Values();
+      queryValues.setValuesList([keyspaceNameValue]);
+
+      const any = new Any();
+      any.setValue(queryValues.serializeBinary());
+      payload.setData(any);
+
+      const queryParameters = new QueryParameters();
+      queryParameters.setTracing(false);
+      queryParameters.setSkipMetadata(false);
+
+      query.setValues(payload);
+      query.setParameters(queryParameters);
+
+      const response = await promisifiedClient.executeQuery(query, metadata);
+
+      const resultSet = toResultSet(response) as ResultSet;
+
+      const rows = resultSet.getRowsList();
+      expect(rows.length).toBe(1);
+
+      const firstRowFirstValue = rows[0].getValuesList()[0];
+      expect(firstRowFirstValue.getString()).toBe("system");
     });
   });
   describe("executeBatch", () => {
