@@ -1,2 +1,2 @@
 export { TableBasedCallCredentials } from "./auth";
-export { StargateBearerToken } from "./stargateBearerToken";
+export { StargateBearerToken } from "./StargateBearerToken";

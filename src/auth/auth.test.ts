@@ -2,7 +2,7 @@ import { CallCredentials, Metadata } from "@grpc/grpc-js";
 import { CallMetadataOptions } from "@grpc/grpc-js/build/src/call-credentials";
 import nock from "nock";
 import { TableBasedCallCredentials } from "./auth";
-import { StargateBearerToken } from "./stargateBearerToken";
+import { StargateBearerToken } from "./StargateBearerToken";
 const MOCK_SERVICE_ENDPOINT = "http://localhost:8081/v1/auth";
 
 describe("TableBasedCallCredentials", () => {
