@@ -52,6 +52,7 @@ describe("Stargate gRPC client integration tests", () => {
   describe("executeQuery", () => {
     it("supports basic queries", async () => {
       const tabledBasedToken = new StargateTableBasedToken({
+        authEndpoint,
         username: "cassandra",
         password: "cassandra",
       });
@@ -84,6 +85,7 @@ describe("Stargate gRPC client integration tests", () => {
     });
     it("all numeric", async () => {
       const tableBasedToken = new StargateTableBasedToken({
+        authEndpoint,
         username: "cassandra",
         password: "cassandra",
       });
@@ -128,6 +130,7 @@ describe("Stargate gRPC client integration tests", () => {
     });
     it("Supports full CRUD operations", async () => {
       const tableBasedToken = new StargateTableBasedToken({
+        authEndpoint,
         username: "cassandra",
         password: "cassandra",
       });
@@ -444,6 +447,7 @@ describe("Stargate gRPC client integration tests", () => {
 
     beforeAll(async () => {
       tableBasedToken = new StargateTableBasedToken({
+        authEndpoint,
         username: "cassandra",
         password: "cassandra",
       });

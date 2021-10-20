@@ -11,6 +11,7 @@ describe("StargateTableBasedToken", () => {
       describe("successfully received response from service endpoint", () => {
         it("returns a Metadata object with the auth token value inside", async () => {
           const credentials = new StargateTableBasedToken({
+            authEndpoint: MOCK_SERVICE_ENDPOINT,
             username: "foo",
             password: "bar",
           });
@@ -26,6 +27,7 @@ describe("StargateTableBasedToken", () => {
       describe("error calling service endpoint", () => {
         it("throws an error", async () => {
           const credentials = new StargateTableBasedToken({
+            authEndpoint: MOCK_SERVICE_ENDPOINT,
             username: "foo",
             password: "bar",
           });
@@ -43,6 +45,7 @@ describe("StargateTableBasedToken", () => {
     describe("post-compose - multiple metadata generators", () => {
       it("returns a Metadata object with metadata from all generators", async () => {
         const credentials = new StargateTableBasedToken({
+          authEndpoint: MOCK_SERVICE_ENDPOINT,
           username: "foo",
           password: "bar",
         }).compose(new DummyCallCredentials());
@@ -60,6 +63,7 @@ describe("StargateTableBasedToken", () => {
   describe("compose", () => {
     it("returns a brand-new CallCredentials object", () => {
       const credentials = new StargateTableBasedToken({
+        authEndpoint: MOCK_SERVICE_ENDPOINT,
         username: "foo",
         password: "bar",
       });
@@ -74,6 +78,7 @@ describe("StargateTableBasedToken", () => {
     describe("called with the same object", () => {
       it("returns true", () => {
         const credentials = new StargateTableBasedToken({
+          authEndpoint: MOCK_SERVICE_ENDPOINT,
           username: "foo",
           password: "bar",
         });
@@ -85,6 +90,7 @@ describe("StargateTableBasedToken", () => {
       describe("other object is not an instance of StargateTableBasedToken", () => {
         it("returns false", () => {
           const tableBased = new StargateTableBasedToken({
+            authEndpoint: MOCK_SERVICE_ENDPOINT,
             username: "foo",
             password: "bar",
           });
@@ -97,10 +103,12 @@ describe("StargateTableBasedToken", () => {
         describe("username and password are the same", () => {
           it("returns true", () => {
             const a = new StargateTableBasedToken({
+              authEndpoint: MOCK_SERVICE_ENDPOINT,
               username: "foo",
               password: "bar",
             });
             const b = new StargateTableBasedToken({
+              authEndpoint: MOCK_SERVICE_ENDPOINT,
               username: "foo",
               password: "bar",
             });
@@ -111,10 +119,12 @@ describe("StargateTableBasedToken", () => {
         describe("username equal, password different", () => {
           it("returns false", () => {
             const a = new StargateTableBasedToken({
+              authEndpoint: MOCK_SERVICE_ENDPOINT,
               username: "foo",
               password: "bar",
             });
             const b = new StargateTableBasedToken({
+              authEndpoint: MOCK_SERVICE_ENDPOINT,
               username: "foo",
               password: "baz",
             });
@@ -124,10 +134,12 @@ describe("StargateTableBasedToken", () => {
         });
         describe("username different, password equal", () => {
           const a = new StargateTableBasedToken({
+            authEndpoint: MOCK_SERVICE_ENDPOINT,
             username: "fooo",
             password: "bar",
           });
           const b = new StargateTableBasedToken({
+            authEndpoint: MOCK_SERVICE_ENDPOINT,
             username: "foo",
             password: "bar",
           });
