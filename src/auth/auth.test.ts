@@ -100,51 +100,38 @@ describe("StargateTableBasedToken", () => {
         });
       });
       describe("other object is an instance of StargateTableBasedToken", () => {
-        describe("username and password are the same", () => {
-          it("returns true", () => {
-            const a = new StargateTableBasedToken({
-              authEndpoint: MOCK_SERVICE_ENDPOINT,
-              username: "foo",
-              password: "bar",
-            });
-            const b = new StargateTableBasedToken({
-              authEndpoint: MOCK_SERVICE_ENDPOINT,
-              username: "foo",
-              password: "bar",
-            });
-            const result = a._equals(b);
-            expect(result).toBe(true);
-          });
-        });
-        describe("username equal, password different", () => {
+        describe("any one of authEndpoint, username or password fields are different", () => {
           it("returns false", () => {
-            const a = new StargateTableBasedToken({
-              authEndpoint: MOCK_SERVICE_ENDPOINT,
-              username: "foo",
-              password: "bar",
+            const tests = [
+              [
+                { authEndpoint: "a", username: "a", password: "a" },
+                { authEndpoint: "b", username: "a", password: "a" },
+              ],
+              [
+                { authEndpoint: "a", username: "a", password: "a" },
+                { authEndpoint: "a", username: "b", password: "a" },
+              ],
+              [
+                { authEndpoint: "a", username: "a", password: "a" },
+                { authEndpoint: "a", username: "a", password: "b" },
+              ],
+            ];
+
+            tests.forEach((test) => {
+              const a = new StargateTableBasedToken(test[0]);
+              const b = new StargateTableBasedToken(test[1]);
+
+              expect(a._equals(b)).toBe(false);
             });
-            const b = new StargateTableBasedToken({
-              authEndpoint: MOCK_SERVICE_ENDPOINT,
-              username: "foo",
-              password: "baz",
-            });
-            const result = a._equals(b);
-            expect(result).toBe(false);
           });
         });
-        describe("username different, password equal", () => {
-          const a = new StargateTableBasedToken({
-            authEndpoint: MOCK_SERVICE_ENDPOINT,
-            username: "fooo",
-            password: "bar",
+        describe("authEndpoint, username and password fields are the same", () => {
+          it("returns true", () => {
+            const config = { authEndpoint: "a", username: "a", password: "a" };
+            const a = new StargateTableBasedToken(config);
+            const b = new StargateTableBasedToken(config);
+            expect(a._equals(b)).toBe(true);
           });
-          const b = new StargateTableBasedToken({
-            authEndpoint: MOCK_SERVICE_ENDPOINT,
-            username: "foo",
-            password: "bar",
-          });
-          const result = a._equals(b);
-          expect(result).toBe(false);
         });
       });
     });

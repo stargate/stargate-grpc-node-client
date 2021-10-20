@@ -58,7 +58,9 @@ export class StargateTableBasedToken extends CallCredentials {
     }
     if (other instanceof StargateTableBasedToken) {
       return (
-        this.#username === other.#username && this.#password === other.#password
+        this.#authEndpoint === other.#authEndpoint &&
+        this.#username === other.#username &&
+        this.#password === other.#password
       );
     }
     return false;
