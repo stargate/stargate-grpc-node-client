@@ -442,7 +442,7 @@ describe("Stargate gRPC client integration tests", () => {
       expect(newasciiValue.hasString()).toBe(true);
       expect(newasciiValue.getString()).toBe("echo");
     });
-    it.skip("Supports paramaterized queries", async () => {
+    it.skip("Supports parameterized queries", async () => {
       const tableBasedToken = new StargateTableBasedToken({
         authEndpoint,
         username: "cassandra",
