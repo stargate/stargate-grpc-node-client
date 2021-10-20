@@ -1,16 +1,16 @@
 import { CallCredentials, Metadata } from "@grpc/grpc-js";
 import { CallMetadataOptions } from "@grpc/grpc-js/build/src/call-credentials";
 import nock from "nock";
-import { TableBasedCallCredentials } from "./auth";
+import { StargateTableBasedToken } from "./StargateTableBasedToken";
 import { StargateBearerToken } from "./StargateBearerToken";
 const MOCK_SERVICE_ENDPOINT = "http://localhost:8081/v1/auth";
 
-describe("TableBasedCallCredentials", () => {
+describe("StargateTableBasedToken", () => {
   describe("generateMetadata", () => {
     describe("default scenario - only one metadata generator", () => {
       describe("successfully received response from service endpoint", () => {
         it("returns a Metadata object with the auth token value inside", async () => {
-          const credentials = new TableBasedCallCredentials({
+          const credentials = new StargateTableBasedToken({
             username: "foo",
             password: "bar",
           });
@@ -25,7 +25,7 @@ describe("TableBasedCallCredentials", () => {
       });
       describe("error calling service endpoint", () => {
         it("throws an error", async () => {
-          const credentials = new TableBasedCallCredentials({
+          const credentials = new StargateTableBasedToken({
             username: "foo",
             password: "bar",
           });
@@ -42,7 +42,7 @@ describe("TableBasedCallCredentials", () => {
     });
     describe("post-compose - multiple metadata generators", () => {
       it("returns a Metadata object with metadata from all generators", async () => {
-        const credentials = new TableBasedCallCredentials({
+        const credentials = new StargateTableBasedToken({
           username: "foo",
           password: "bar",
         }).compose(new DummyCallCredentials());
@@ -59,7 +59,7 @@ describe("TableBasedCallCredentials", () => {
   });
   describe("compose", () => {
     it("returns a brand-new CallCredentials object", () => {
-      const credentials = new TableBasedCallCredentials({
+      const credentials = new StargateTableBasedToken({
         username: "foo",
         password: "bar",
       });
@@ -73,7 +73,7 @@ describe("TableBasedCallCredentials", () => {
   describe("_equals", () => {
     describe("called with the same object", () => {
       it("returns true", () => {
-        const credentials = new TableBasedCallCredentials({
+        const credentials = new StargateTableBasedToken({
           username: "foo",
           password: "bar",
         });
@@ -82,9 +82,9 @@ describe("TableBasedCallCredentials", () => {
       });
     });
     describe("called with another object", () => {
-      describe("other object is not an instance of TableBasedCallCredentials", () => {
+      describe("other object is not an instance of StargateTableBasedToken", () => {
         it("returns false", () => {
-          const tableBased = new TableBasedCallCredentials({
+          const tableBased = new StargateTableBasedToken({
             username: "foo",
             password: "bar",
           });
@@ -93,14 +93,14 @@ describe("TableBasedCallCredentials", () => {
           expect(result).toBe(false);
         });
       });
-      describe("other object is an instance of TableBasedCallCredentials", () => {
+      describe("other object is an instance of StargateTableBasedToken", () => {
         describe("username and password are the same", () => {
           it("returns true", () => {
-            const a = new TableBasedCallCredentials({
+            const a = new StargateTableBasedToken({
               username: "foo",
               password: "bar",
             });
-            const b = new TableBasedCallCredentials({
+            const b = new StargateTableBasedToken({
               username: "foo",
               password: "bar",
             });
@@ -110,11 +110,11 @@ describe("TableBasedCallCredentials", () => {
         });
         describe("username equal, password different", () => {
           it("returns false", () => {
-            const a = new TableBasedCallCredentials({
+            const a = new StargateTableBasedToken({
               username: "foo",
               password: "bar",
             });
-            const b = new TableBasedCallCredentials({
+            const b = new StargateTableBasedToken({
               username: "foo",
               password: "baz",
             });
@@ -123,11 +123,11 @@ describe("TableBasedCallCredentials", () => {
           });
         });
         describe("username different, password equal", () => {
-          const a = new TableBasedCallCredentials({
+          const a = new StargateTableBasedToken({
             username: "fooo",
             password: "bar",
           });
-          const b = new TableBasedCallCredentials({
+          const b = new StargateTableBasedToken({
             username: "foo",
             password: "bar",
           });

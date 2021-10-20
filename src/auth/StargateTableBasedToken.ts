@@ -3,19 +3,19 @@ import { CallCredentials, Metadata } from "@grpc/grpc-js";
 import { CallMetadataOptions } from "@grpc/grpc-js/build/src/call-credentials";
 import { StargateAuthMetadata } from "./StargateAuthMetadata";
 
-interface TableBasedCallCredentialsConfig {
+interface TabledBasedTokenConfig {
   username: string;
   password: string;
 }
 
 const AUTH_SERVICE_TIMEOUT = 5000;
 
-export class TableBasedCallCredentials extends StargateAuthMetadata {
+export class StargateTableBasedToken extends StargateAuthMetadata {
   #username: string;
   #password: string;
   private httpClient: AxiosInstance;
 
-  constructor({ username, password }: TableBasedCallCredentialsConfig) {
+  constructor({ username, password }: TabledBasedTokenConfig) {
     super();
     this.#username = username;
     this.#password = password;
@@ -29,7 +29,7 @@ export class TableBasedCallCredentials extends StargateAuthMetadata {
       username: this.#username,
       password: this.#password,
     };
-    const newCreds = new TableBasedCallCredentials(newCredsConfig);
+    const newCreds = new StargateTableBasedToken(newCredsConfig);
     newCreds.metadataGenerators = currentGenerators.concat(newGenerator);
     return newCreds;
   }
@@ -38,7 +38,7 @@ export class TableBasedCallCredentials extends StargateAuthMetadata {
     if (this === other) {
       return true;
     }
-    if (other instanceof TableBasedCallCredentials) {
+    if (other instanceof StargateTableBasedToken) {
       return (
         this.#username === other.#username && this.#password === other.#password
       );

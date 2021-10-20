@@ -5,7 +5,7 @@ import {
   toCQLTime,
   toUUIDString,
 } from "../util";
-import { TableBasedCallCredentials } from "../auth/auth";
+import { StargateTableBasedToken } from "../auth";
 import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
 import {
   Batch,
@@ -49,13 +49,13 @@ describe("Stargate gRPC client integration tests", () => {
     }
   });
 
-  describe.only("executeQuery", () => {
+  describe("executeQuery", () => {
     it("supports basic queries", async () => {
-      const tableBasedCallCredentials = new TableBasedCallCredentials({
+      const tabledBasedToken = new StargateTableBasedToken({
         username: "cassandra",
         password: "cassandra",
       });
-      const metadata = await tableBasedCallCredentials.generateMetadata({
+      const metadata = await tabledBasedToken.generateMetadata({
         service_url: authEndpoint,
       });
 
@@ -83,11 +83,11 @@ describe("Stargate gRPC client integration tests", () => {
       expect(firstValue).toEqual("local");
     });
     it("all numeric", async () => {
-      const tableBasedCallCredentials = new TableBasedCallCredentials({
+      const tableBasedToken = new StargateTableBasedToken({
         username: "cassandra",
         password: "cassandra",
       });
-      const metadata = await tableBasedCallCredentials.generateMetadata({
+      const metadata = await tableBasedToken.generateMetadata({
         service_url: authEndpoint,
       });
 
@@ -126,12 +126,12 @@ describe("Stargate gRPC client integration tests", () => {
       expect(asInt).toEqual(7776000);
       expect(resultSet.hasPagingState()).toBe(false);
     });
-    it.only("Supports full CRUD operations", async () => {
-      const tableBasedCallCredentials = new TableBasedCallCredentials({
+    it("Supports full CRUD operations", async () => {
+      const tableBasedToken = new StargateTableBasedToken({
         username: "cassandra",
         password: "cassandra",
       });
-      const metadata = await tableBasedCallCredentials.generateMetadata({
+      const metadata = await tableBasedToken.generateMetadata({
         service_url: authEndpoint,
       });
 
@@ -436,19 +436,19 @@ describe("Stargate gRPC client integration tests", () => {
     });
   });
   describe("executeBatch", () => {
-    let tableBasedCallCredentials: TableBasedCallCredentials;
+    let tableBasedToken: StargateTableBasedToken;
     let metadata: grpc.Metadata;
     let promisifiedClient: PromisifiedStargateClient;
 
     const KEYSPACE = "batch_test";
 
     beforeAll(async () => {
-      tableBasedCallCredentials = new TableBasedCallCredentials({
+      tableBasedToken = new StargateTableBasedToken({
         username: "cassandra",
         password: "cassandra",
       });
 
-      metadata = await tableBasedCallCredentials.generateMetadata({
+      metadata = await tableBasedToken.generateMetadata({
         service_url: authEndpoint,
       });
 
