@@ -1,27 +1,12 @@
 import { CallCredentials, Metadata } from "@grpc/grpc-js";
-import { CallMetadataOptions } from "@grpc/grpc-js/build/src/call-credentials";
+import { StargateAuthMetadata } from "./StargateAuthMetadata";
 
-export class StargateBearerToken extends CallCredentials {
+export class StargateBearerToken extends StargateAuthMetadata {
   #token: string;
-  private metadataGenerators: ((
-    options: CallMetadataOptions
-  ) => Promise<Metadata>)[];
 
   constructor(token: string) {
     super();
     this.#token = token;
-    this.metadataGenerators = [this.getMetadata.bind(this)];
-  }
-
-  async generateMetadata(options: CallMetadataOptions): Promise<Metadata> {
-    const base = new Metadata();
-    const generated: Metadata[] = await Promise.all(
-      this.metadataGenerators.map((generator) => generator(options))
-    );
-    for (const gen of generated) {
-      base.merge(gen);
-    }
-    return base;
   }
 
   compose(callCredentials: CallCredentials): CallCredentials {
@@ -42,7 +27,7 @@ export class StargateBearerToken extends CallCredentials {
     return false;
   }
 
-  private async getMetadata(): Promise<Metadata> {
+  protected async getStargateAuthMetadata(): Promise<Metadata> {
     const metadata = new Metadata();
     metadata.set("x-cassandra-token", this.#token);
 
