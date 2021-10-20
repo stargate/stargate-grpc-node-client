@@ -22,7 +22,7 @@ export abstract class StargateAuthMetadata extends CallCredentials {
     return base;
   }
 
-  abstract getStargateAuthMetadata(
+  protected abstract getStargateAuthMetadata(
     options: CallMetadataOptions
   ): Promise<Metadata>;
 }
