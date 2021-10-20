@@ -47,7 +47,7 @@ import * as grpc from "@grpc/grpc-js";
 import { StargateClient, StargateTableBasedToken, Query, toResultSet, Response, promisifyStargateClient } from "@stargate/stargate-grpc-node-client";
 
 // Create a client for Stargate/Cassandra authentication using the default C* username and password
-const creds = new StargateTableBasedToken({username: 'cassandra', password: 'cassandra'});
+const creds = new StargateTableBasedToken({authEndpoint: 'http://localhost:8081/v1/auth', username: 'cassandra', password: 'cassandra'});
 
 // Create the gRPC client, passing it the address of the gRPC endpoint
 const stargateClient = new StargateClient('localhost:8090', grpc.credentials.createInsecure());
@@ -58,7 +58,49 @@ const promisifiedClient = promisifyStargateClient(stargateClient);
 
 ### Authentication
 
+This client supports both table-based and JWT-based authentication to Stargate.
 
+For table-based auth, use the `StargateTableBasedToken` class:
+
+```typescript
+const tableBasedToken = new StargateTableBasedToken({authEndpoint: 'http://localhost:8081/v1/auth', username: 'cassandra', password: 'cassandra'});
+```
+
+For JWT-based auth, use the `StargateBearerToken` class and pass your token in directly:
+
+```typescript
+const bearerToken = new StargateBearerToken('my-token');
+```
+
+#### Generating authentication metadata
+
+If you're connecting to Stargate through insecure gRPC credentials - e.g. to a local Stargate instance - you must manually generate metadata for each call, like so:
+
+```typescript
+const stargateClient = new StargateClient(grpcEndpoint, grpc.credentials.createInsecure());
+
+const promisifiedClient = promisifyStargateClient(stargateClient);
+
+const authenticationMetadata = await creds.generateMetadata({service_url: 'http://localhost:8081/v1/auth'});
+await promisifiedClient.executeQuery(query, authenticationMetadata);
+```
+
+This is because the Node gRPC implementation [does not allow composing insecure credentials.](https://github.com/grpc/grpc-node/issues/543)
+
+However, if you're using secure gRPC credentials - e.g. connecting to a remote Stargate instance like an Astra database - you can simply include the token metadata generator when constructing the client. The metadata will automatically be generated on every call to the client:
+
+```typescript
+const bearerToken = new StargateBearerToken('my-token');
+const credentials = grpc.credentials.combineChannelCredentials(grpc.credentials.createSsl(), bearerToken);
+
+const stargateClient = new StargateClient(grpcEndpoint, credentials);
+const promisifiedClient = promisifyStargateClient(stargateClient);
+
+// No need to pass metadata; the credentials passed to the client constructor will do that for us
+await promisifiedClient.executeQuery(query);
+```
+
+The examples in this README are designed to work with a local Stargate instance, so they use the insecure approach.
 
 ### Querying
 
@@ -68,7 +110,7 @@ A simple query can be performed by passing a CQL query to the client:
 const query = new Query();
 query.setCql('select cluster_name from system.local');
 
-// Must manually generate auth metadata if using insecure creds - see authentication section below for details
+// Must manually generate auth metadata if using insecure creds - see authentication section above for details
 const authenticationMetadata = await creds.generateMetadata({service_url: 'http://localhost:8081/v1/auth'});
 await promisifiedClient.executeQuery(query, authenticationMetadata);
 ```
@@ -156,7 +198,7 @@ if (resultSet) {
 
 Individual values from queries will be returned as a `Value` object. These objects have boolean `hasX()` methods, where X is the possible type of a value.
 
-There are corresponding `getX()` methods on the `Value` type that will return the value, if present. If the value does not represent type X, calling `getX()` will not return an error. You'll get `undefined` or another falsy value based on the expected data type.
+There are corresponding `getX()` methods on the `Value` type that will return the value, if present. If the value does not represent type X, calling `getX()` will not throw an error. You'll get `undefined` or another falsy value based on the expected data type.
 
 ```typescript
 const firstValueInRow = row.getValuesList()[0]; // Assume we know this is a string
@@ -170,85 +212,42 @@ const intValue = firstValueInRow.getInt(); // 0 - zero value for this data type
 
 #### Reading CQL data types
 
+The built-in `toX()` methods for `Value`s representing more complicated types like UUIDs can be hard to work with. This library exposes helper functions to translate a `Value` into a more easily used type:
 
+- `toUUIDString`
+- `toCQLTime`
 
+Unlike the built-in `toX()` methods, these helper functions _will_ throw an error if the conversion fails.
 
-
-```typescript
-try {
-    const query = new Query();
-    query.setCql('select cluster_name from system.local');
-
-    const result: Response = await promisifiedClient.executeQuery(query, authenticationMetadata);
-    
-    const resultSet = toResultSet(result);
-
-    if (resultSet) {
-        const firstRowReturned = resultSet.getRowsList()[0];
-        const clusterName = firstRowReturned.getValuesList()[0].getString();
-        console.log(`cluster name returned from gRPC call: ${clusterName}`);
-    }
-
-} catch (e) {
-    console.error(`Error making gRPC call: ${e}`)
-}
-```
-
-### Authentication
-
-The `TableBasedCallCredentials` class generates gRPC metadata with an auth token from [the Stargate Auth API](https://stargate.io/docs/stargate/1.0/developers-guide/auth.html). Construct an instance using the username and password of a user in your Cassandra database, then call the `generateMetadata` method with the location of your Stargate instance's auth endpoint:
+Here's an example of processing a UUID:
 
 ```typescript
-const stargateCallCredentials = new TableBasedCallCredentials({
-  username: "cassandra",
-  password: "cassandra",
-});
+const insert = new Query();
+insert.setCql("INSERT INTO ks1.tbl2 (id) VALUES (f066f76d-5e96-4b52-8d8a-0f51387df76b);");
+await promisifiedClient.executeQuery(insert, authenticationMetadata);
 
-try {
-  const stargateAuthMetadata = await stargateCallCredentials.generateMetadata({
-    service_url: "http://localhost:8081/v1/auth",
-  });
-} catch (e) {
-  // Something went wrong calling the auth endpoint
-  throw e;
-}
-```
+// Read the data back out
+const read = new Query();
+read.setCql("SELECT id FROM ks1.tbl2");
+const result = await promisifiedClient.executeQuery(read, authenticationMetadata);
 
-The `generateMetadata` method POSTs on your Stargate auth endpoint to fetch a token, then sets it on the metadata it returns.
+const resultSet = toResultSet(result);
 
-You can reuse the same `TableBasedCallCredentials` instance but should call `generateMetadata` on it for each gRPC call you make, to ensure you don't use a stale auth token.
-
-### gRPC calls
-
-Create a `StargateClient` instance with the address of your gRPC server and any credentials needed to connect. Note Stargate exposes port 8090 for gRPC traffic by default:
-
-```typescript
-const stargateClient = new StargateClient(
-  "localhost:8090",
-  grpc.credentials.createInsecure()
-);
-```
-
-The client follows the `@grpc/grpc-js` callback style for sending queries and batches:
-
-```typescript
-stargateClient.executeQuery(
-  query,
-  authenticationMetadata,
-  (error: grpc.ServiceError | null, value?: Response) => {
-    if (error) {
-      // something went wrong
-    }
-    if (value) {
-      // the call succeeded
-    }
+if (resultSet) {
+  const firstRow = resultSet.getRowsList()[0];
+  const idValue = firstRow.getValuesList()[0];
+  try {
+  const uuidAsString = toUUIDString(idValue);
+  console.log(`UUID: ${uuidAsString}`);
+  } catch (e) {
+    console.error(`Conversion of Value to UUID string failed: ${e}`);
   }
-);
+}
 ```
 
 ### Promise support
 
-If you'd prefer promises over callbacks, this library provides a utility function to create a promisified version of the Stargate gRPC client. The promise will reject if an error occurs:
+The Node gRPC implementation uses callbacks by default. If you'd prefer promises, this library provides a utility function to create a promisified version of the Stargate gRPC client. The promise will reject if an error occurs:
 
 ```typescript
 import {
@@ -280,27 +279,6 @@ try {
 
 The `metadata` and `callOptions` arguments are both optional.
 
-### Working with responses
-
-A response will contain a `ResultSet` object if you sent CQL that should return data, or a `SchemaChange` object if your query should have changed the CQL schema. It will never return both.
-
-If you expect a ResultSet in your response, this library offers a utility method to convert it for you. You can then read rows, columns and values off the result set:
-
-```typescript
-// here value is the response in the gRPC callback function
-const resultSet = toResultSet(value);
-if (resultSet) {
-  const rowsReturned = resultSet.getRowsList();
-  rowsReturned.forEach(row, (index) => {
-    const valuesInThisRow = row.getValuesList();
-    const firstValueInRow = row.getValuesList()[0].getString(); // assume we know/expect this is a string value based on our query
-    console.log(`First value in row ${index}: ${firstValueInRow}`);
-  });
-}
-```
-
-`toResultSet` will never throw; it will simply return `undefined` if it's unable to properly deserialize the value passed to it into a `ResultSet` object.
-
 ### Example uses
 
 See the integration tests at `src/client/client.test.ts` for more example uses of this client. The [DEV_GUIDE.md](DEV_GUIDE.md) has instructions on how to run the integration tests locally as well.
@@ -310,4 +288,5 @@ See the integration tests at `src/client/client.test.ts` for more example uses o
 You can reference the [CONTRIBUTING.md](CONTRIBUTING.md) and [DEV_GUIDE.md](DEV_GUIDE.md) for a full description of how to get involved but the short of it is below.
 
 - If you've found a bug (use the bug label) or want to request a new feature (use the enhancement label), file a GitHub issue
-- If you're not sure about it or want to chat, reach out on the Stargate [Discord](https://discord.gg/GravUqY) or [mailing list](https://groups.google.com/a/lists.stargate.io/g/stargate-users)
+- If you're not sure about it or want to chat, reach out on our [Discord](https://discord.gg/GravUqY) or [mailing list](https://groups.google.com/a/lists.stargate.io/g/stargate-users)
+- If you want to write some user docs 🎉 head over to the [stargate/docs](https://github.com/stargate/docs) repo, Pull Requests accepted!
