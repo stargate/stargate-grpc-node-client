@@ -1,7 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 import { CallCredentials, Metadata } from "@grpc/grpc-js";
 import { CallMetadataOptions } from "@grpc/grpc-js/build/src/call-credentials";
-import { StargateAuthMetadata } from "./StargateAuthMetadata";
 
 interface TabledBasedTokenConfig {
   username: string;
@@ -10,16 +9,31 @@ interface TabledBasedTokenConfig {
 
 const AUTH_SERVICE_TIMEOUT = 5000;
 
-export class StargateTableBasedToken extends StargateAuthMetadata {
+export class StargateTableBasedToken extends CallCredentials {
   #username: string;
   #password: string;
+  private metadataGenerators: ((
+    options: CallMetadataOptions
+  ) => Promise<Metadata>)[];
   private httpClient: AxiosInstance;
 
   constructor({ username, password }: TabledBasedTokenConfig) {
     super();
     this.#username = username;
     this.#password = password;
+    this.metadataGenerators = [this.getStargateAuthMetadata.bind(this)];
     this.httpClient = axios.create({ timeout: AUTH_SERVICE_TIMEOUT });
+  }
+
+  async generateMetadata(options: CallMetadataOptions): Promise<Metadata> {
+    const base = new Metadata();
+    const generated: Metadata[] = await Promise.all(
+      this.metadataGenerators.map((generator) => generator(options))
+    );
+    for (const gen of generated) {
+      base.merge(gen);
+    }
+    return base;
   }
 
   compose(callCredentials: CallCredentials): CallCredentials {
