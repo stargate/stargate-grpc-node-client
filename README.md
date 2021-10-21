@@ -2,6 +2,18 @@
 
 This package provides the ability for Node applications to communicate with the [Stargate data gateway](https://stargate.io/) via gRPC.
 
+- [Quick start guide](#quick-start-guide)
+  * [Connecting](#connecting)
+  * [Authentication](#authentication)
+    + [Generating authentication metadata](#generating-authentication-metadata)
+  * [Querying](#querying)
+  * [Processing the result set](#processing-the-result-set)
+    + [Reading primitive values](#reading-primitive-values)
+    + [Reading CQL data types](#reading-cql-data-types)
+  * [Promise support](#promise-support)
+  * [Example uses](#example-uses)
+- [Issue Management](#issue-management)
+
 ## Quick start guide
 
 To begin, you'll need to add the necessary dependency to your project:
