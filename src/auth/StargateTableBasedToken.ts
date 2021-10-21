@@ -69,9 +69,11 @@ export class StargateTableBasedToken extends CallCredentials {
   protected async getStargateAuthMetadata(
     options: CallMetadataOptions
   ): Promise<Metadata> {
-    const { service_url } = options;
     const postBody = { username: this.#username, password: this.#password };
-    const authResponse = await this.httpClient.post(service_url, postBody);
+    const authResponse = await this.httpClient.post(
+      this.#authEndpoint,
+      postBody
+    );
 
     const metadata = new Metadata();
     metadata.set("x-cassandra-token", authResponse.data.authToken);
