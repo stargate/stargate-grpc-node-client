@@ -33,10 +33,10 @@ You can use [the yalc library](https://github.com/wclr/yalc) to publish changes 
 ```
 (In your local copy of this repo)
 npm run compile
-yalc publish @stargate/stargate-grpc-node-client
+yalc publish @stargate-oss/stargate-grpc-node-client
 
 (In your local consuming application)
-yalc add @stargate/stargate-grpc-node-client
+yalc add @stargate-oss/stargate-grpc-node-client
 ```
 
 You may need to `rm -rf node_modules` and do a fresh `npm i` in the consuming application for the changes to take effect.

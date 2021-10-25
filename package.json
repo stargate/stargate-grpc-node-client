@@ -1,5 +1,5 @@
 {
-  "name": "@stargate/stargate-grpc-node-client",
+  "name": "@stargate-oss/stargate-grpc-node-client",
   "version": "0.1.0",
   "description": "A NodeJS gRPC client for Stargate.",
   "main": "lib/index.js",
@@ -47,9 +47,6 @@
     "google-protobuf": "^3.18.0-rc.2"
   },
   "lint-staged": {
-    "*.{js,ts}": [
-      "eslint"
-    ],
     "*.{js,ts}": [
       "prettier --write"
     ]

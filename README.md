@@ -21,13 +21,13 @@ To begin, you'll need to add the necessary dependency to your project:
 Using NPM:
 
 ```shell
-npm i @stargate/stargate-grpc-node-client
+npm i @stargate-oss/stargate-grpc-node-client
 ```
 
 Using Yarn:
 
 ```shell
-yarn add @stargate/stargate-grpc-node-client
+yarn add @stargate-oss/stargate-grpc-node-client
 ```
 
 If you don't already have access to a Stargate deployment one can be started quickly for testing using the following Docker
@@ -56,7 +56,7 @@ with the default credentials of `cassandra/cassandra`. For more information rega
 
 ```typescript
 import * as grpc from "@grpc/grpc-js";
-import { StargateClient, StargateTableBasedToken, Query, toResultSet, Response, promisifyStargateClient } from "@stargate/stargate-grpc-node-client";
+import { StargateClient, StargateTableBasedToken, Query, toResultSet, Response, promisifyStargateClient } from "@stargate-oss/stargate-grpc-node-client";
 
 // Create a client for Stargate/Cassandra authentication using the default C* username and password
 const creds = new StargateTableBasedToken({authEndpoint: 'http://localhost:8081/v1/auth', username: 'cassandra', password: 'cassandra'});
@@ -242,7 +242,7 @@ The Node gRPC implementation uses callbacks by default. If you'd prefer promises
 import {
   StargateClient,
   promisifyStargateClient,
-} from "@stargate/stargate-grpc-node-client";
+} from "@stargate-oss/stargate-grpc-node-client";
 
 const stargateClient = new StargateClient(
   "localhost:8090",
