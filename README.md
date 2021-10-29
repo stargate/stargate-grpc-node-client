@@ -41,7 +41,7 @@ docker run --name stargate \
   -e CLUSTER_NAME=stargate \
   -e CLUSTER_VERSION=3.11 \
   -e DEVELOPER_MODE=true \
-  stargateio/stargate-3_11:v1.0.35
+  stargateio/stargate-3_11:v1.0.40
 ```
 
 Ensure the local instance of Stargate is running properly by tailing the logs for the container with `docker logs -f stargate`. When you see this message, Stargate is ready for traffic:

@@ -32,7 +32,7 @@ describe("Stargate gRPC client integration tests", () => {
   let grpcEndpoint: string;
 
   beforeAll(async () => {
-    container = await new GenericContainer("stargateio/stargate-3_11:v1.0.35")
+    container = await new GenericContainer("stargateio/stargate-3_11:v1.0.40")
       .withEnv("CLUSTER_NAME", "test")
       .withEnv("CLUSTER_VERSION", "3.11")
       .withEnv("DEVELOPER_MODE", "true")
