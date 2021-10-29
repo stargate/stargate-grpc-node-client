@@ -143,6 +143,29 @@ createTableStatement.setCql("CREATE TABLE IF NOT EXISTS ks1.tbl2 (key text PRIMA
 await promisifiedClient.executeQuery(query, authenticationMetadata);
 ```
 
+Parameterized queries are also supported:
+
+```typescript
+const query = new Query();
+query.setCql("select * from system_schema.keyspaces where keyspace_name = ?");
+
+const keyspaceNameValue = new Value();
+keyspaceNameValue.setString("system");
+
+const queryValues = new Values();
+queryValues.setValuesList([keyspaceNameValue]);
+
+query.setValues(queryValues);
+
+const queryParameters = new QueryParameters();
+queryParameters.setTracing(false);
+queryParameters.setSkipMetadata(false);
+
+query.setParameters(queryParameters);
+
+const response = await promisifiedClient.executeQuery(query, metadata);
+```
+
 If you would like to use a [batch statement](https://cassandra.apache.org/doc/latest/cassandra/cql/dml.html#batch_statement), the client also provides an `executeBatch()` function for this purpose:
 
 ```typescript
