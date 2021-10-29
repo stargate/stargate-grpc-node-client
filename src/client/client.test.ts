@@ -16,7 +16,6 @@ import {
 } from "../proto/query_pb";
 import * as grpc from "@grpc/grpc-js";
 import { StargateClient } from "../proto/stargate_grpc_pb";
-import { Any } from "google-protobuf/google/protobuf/any_pb";
 
 describe("Stargate gRPC client integration tests", () => {
   // Two minutes should be plenty to spin up the Stargate container
