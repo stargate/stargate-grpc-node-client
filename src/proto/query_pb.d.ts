@@ -331,8 +331,8 @@ export class Query extends jspb.Message {
 
   hasValues(): boolean;
   clearValues(): void;
-  getValues(): Payload | undefined;
-  setValues(value?: Payload): void;
+  getValues(): Values | undefined;
+  setValues(value?: Values): void;
 
   hasParameters(): boolean;
   clearParameters(): void;
@@ -352,7 +352,7 @@ export class Query extends jspb.Message {
 export namespace Query {
   export type AsObject = {
     cql: string,
-    values?: Payload.AsObject,
+    values?: Values.AsObject,
     parameters?: QueryParameters.AsObject,
   }
 }
@@ -383,38 +383,6 @@ export namespace Values {
     valuesList: Array<Value.AsObject>,
     valueNamesList: Array<string>,
   }
-}
-
-export class Payload extends jspb.Message {
-  getType(): Payload.TypeMap[keyof Payload.TypeMap];
-  setType(value: Payload.TypeMap[keyof Payload.TypeMap]): void;
-
-  hasData(): boolean;
-  clearData(): void;
-  getData(): google_protobuf_any_pb.Any | undefined;
-  setData(value?: google_protobuf_any_pb.Any): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Payload.AsObject;
-  static toObject(includeInstance: boolean, msg: Payload): Payload.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: Payload, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Payload;
-  static deserializeBinaryFromReader(message: Payload, reader: jspb.BinaryReader): Payload;
-}
-
-export namespace Payload {
-  export type AsObject = {
-    type: Payload.TypeMap[keyof Payload.TypeMap],
-    data?: google_protobuf_any_pb.Any.AsObject,
-  }
-
-  export interface TypeMap {
-    CQL: 0;
-  }
-
-  export const Type: TypeMap;
 }
 
 export class QueryParameters extends jspb.Message {
@@ -848,8 +816,8 @@ export namespace SchemaChange {
 export class Response extends jspb.Message {
   hasResultSet(): boolean;
   clearResultSet(): void;
-  getResultSet(): Payload | undefined;
-  setResultSet(value?: Payload): void;
+  getResultSet(): ResultSet | undefined;
+  setResultSet(value?: ResultSet): void;
 
   hasSchemaChange(): boolean;
   clearSchemaChange(): void;
@@ -879,7 +847,7 @@ export class Response extends jspb.Message {
 
 export namespace Response {
   export type AsObject = {
-    resultSet?: Payload.AsObject,
+    resultSet?: ResultSet.AsObject,
     schemaChange?: SchemaChange.AsObject,
     warningsList: Array<string>,
     traces?: Traces.AsObject,
@@ -1200,8 +1168,8 @@ export class BatchQuery extends jspb.Message {
 
   hasValues(): boolean;
   clearValues(): void;
-  getValues(): Payload | undefined;
-  setValues(value?: Payload): void;
+  getValues(): Values | undefined;
+  setValues(value?: Values): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): BatchQuery.AsObject;
@@ -1216,7 +1184,7 @@ export class BatchQuery extends jspb.Message {
 export namespace BatchQuery {
   export type AsObject = {
     cql: string,
-    values?: Payload.AsObject,
+    values?: Values.AsObject,
   }
 }
 

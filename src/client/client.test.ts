@@ -12,7 +12,6 @@ import {
   BatchQuery,
   Collection,
   Inet,
-  Payload,
   Query,
   QueryParameters,
   ResultSet,
@@ -442,7 +441,7 @@ describe("Stargate gRPC client integration tests", () => {
       expect(newasciiValue.hasString()).toBe(true);
       expect(newasciiValue.getString()).toBe("echo");
     });
-    it.skip("Supports parameterized queries", async () => {
+    it("Supports parameterized queries", async () => {
       const tableBasedToken = new StargateTableBasedToken({
         authEndpoint,
         username: "cassandra",
@@ -464,24 +463,18 @@ describe("Stargate gRPC client integration tests", () => {
         "select * from system_schema.keyspaces where keyspace_name = ?"
       );
 
-      const payload = new Payload();
-      payload.setType(0);
-
       const keyspaceNameValue = new Value();
       keyspaceNameValue.setString("system");
 
       const queryValues = new Values();
       queryValues.setValuesList([keyspaceNameValue]);
 
-      const any = new Any();
-      any.setValue(queryValues.serializeBinary());
-      payload.setData(any);
+      query.setValues(queryValues);
 
       const queryParameters = new QueryParameters();
       queryParameters.setTracing(false);
       queryParameters.setSkipMetadata(false);
 
-      query.setValues(payload);
       query.setParameters(queryParameters);
 
       const response = await promisifiedClient.executeQuery(query, metadata);
