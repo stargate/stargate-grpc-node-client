@@ -56,7 +56,7 @@ with the default credentials of `cassandra/cassandra`. For more information rega
 
 ```typescript
 import * as grpc from "@grpc/grpc-js";
-import { StargateClient, StargateTableBasedToken, Query, toResultSet, Response, promisifyStargateClient } from "@stargate-oss/stargate-grpc-node-client";
+import { StargateClient, StargateTableBasedToken, Query, Response, promisifyStargateClient } from "@stargate-oss/stargate-grpc-node-client";
 
 // Create a client for Stargate/Cassandra authentication using the default C* username and password
 const creds = new StargateTableBasedToken({authEndpoint: 'http://localhost:8081/v1/auth', username: 'cassandra', password: 'cassandra'});
@@ -160,7 +160,7 @@ await promisifiedClient.executeBatch(batch, authenticationMetadata);
 
 ### Processing the result set
 
-After executing a query a response will be returned containing rows for a SELECT statement, otherwise the returned payload will be unset. The convenience function `ToResultSet()` is provided to help transform this response into a ResultSet that's easier to work with.
+After executing a query a response will be returned containing rows for a SELECT statement, otherwise the returned payload will be unset. You can call `getResultSet()` on the response to grab a ResultSet that's easier to work with. Note the function can return `undefined` if no ResultSet was returned, so you'll need to check it's defined or cast it.
 
 ```typescript
 // Insert a record into the table
@@ -173,7 +173,7 @@ const read = new Query();
 read.setCql("SELECT key, value FROM ks1.tbl2");
 const result = await promisifiedClient.executeQuery(read, authenticationMetadata);
 
-const resultSet = toResultSet(result);
+const resultSet = result.getResultSet();
 
 if (resultSet) {
   const firstRow = resultSet.getRowsList()[0];
@@ -220,7 +220,7 @@ const read = new Query();
 read.setCql("SELECT id FROM ks1.tbl2");
 const result = await promisifiedClient.executeQuery(read, authenticationMetadata);
 
-const resultSet = toResultSet(result);
+const resultSet = result.getResultSet();
 
 if (resultSet) {
   const firstRow = resultSet.getRowsList()[0];
