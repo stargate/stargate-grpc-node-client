@@ -1,6 +1,6 @@
 {
   "name": "@stargate-oss/stargate-grpc-node-client",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A NodeJS gRPC client for Stargate.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
