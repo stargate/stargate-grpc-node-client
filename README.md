@@ -41,7 +41,7 @@ docker run --name stargate \
   -e CLUSTER_NAME=stargate \
   -e CLUSTER_VERSION=3.11 \
   -e DEVELOPER_MODE=true \
-  stargateio/stargate-3_11:v1.0.35
+  stargateio/stargate-3_11:v1.0.40
 ```
 
 Ensure the local instance of Stargate is running properly by tailing the logs for the container with `docker logs -f stargate`. When you see this message, Stargate is ready for traffic:
@@ -56,7 +56,7 @@ with the default credentials of `cassandra/cassandra`. For more information rega
 
 ```typescript
 import * as grpc from "@grpc/grpc-js";
-import { StargateClient, StargateTableBasedToken, Query, toResultSet, Response, promisifyStargateClient } from "@stargate-oss/stargate-grpc-node-client";
+import { StargateClient, StargateTableBasedToken, Query, Response, promisifyStargateClient } from "@stargate-oss/stargate-grpc-node-client";
 
 // Create a client for Stargate/Cassandra authentication using the default C* username and password
 const creds = new StargateTableBasedToken({authEndpoint: 'http://localhost:8081/v1/auth', username: 'cassandra', password: 'cassandra'});
@@ -143,6 +143,29 @@ createTableStatement.setCql("CREATE TABLE IF NOT EXISTS ks1.tbl2 (key text PRIMA
 await promisifiedClient.executeQuery(query, authenticationMetadata);
 ```
 
+Parameterized queries are also supported:
+
+```typescript
+const query = new Query();
+query.setCql("select * from system_schema.keyspaces where keyspace_name = ?");
+
+const keyspaceNameValue = new Value();
+keyspaceNameValue.setString("system");
+
+const queryValues = new Values();
+queryValues.setValuesList([keyspaceNameValue]);
+
+query.setValues(queryValues);
+
+const queryParameters = new QueryParameters();
+queryParameters.setTracing(false);
+queryParameters.setSkipMetadata(false);
+
+query.setParameters(queryParameters);
+
+const response = await promisifiedClient.executeQuery(query, metadata);
+```
+
 If you would like to use a [batch statement](https://cassandra.apache.org/doc/latest/cassandra/cql/dml.html#batch_statement), the client also provides an `executeBatch()` function for this purpose:
 
 ```typescript
@@ -160,7 +183,7 @@ await promisifiedClient.executeBatch(batch, authenticationMetadata);
 
 ### Processing the result set
 
-After executing a query a response will be returned containing rows for a SELECT statement, otherwise the returned payload will be unset. The convenience function `ToResultSet()` is provided to help transform this response into a ResultSet that's easier to work with.
+After executing a query a response will be returned containing rows for a SELECT statement, otherwise the returned payload will be unset. You can call `getResultSet()` on the response to grab a ResultSet that's easier to work with. Note the function can return `undefined` if no ResultSet was returned, so you'll need to check it's defined or cast it.
 
 ```typescript
 // Insert a record into the table
@@ -173,7 +196,7 @@ const read = new Query();
 read.setCql("SELECT key, value FROM ks1.tbl2");
 const result = await promisifiedClient.executeQuery(read, authenticationMetadata);
 
-const resultSet = toResultSet(result);
+const resultSet = result.getResultSet();
 
 if (resultSet) {
   const firstRow = resultSet.getRowsList()[0];
@@ -220,7 +243,7 @@ const read = new Query();
 read.setCql("SELECT id FROM ks1.tbl2");
 const result = await promisifiedClient.executeQuery(read, authenticationMetadata);
 
-const resultSet = toResultSet(result);
+const resultSet = result.getResultSet();
 
 if (resultSet) {
   const firstRow = resultSet.getRowsList()[0];

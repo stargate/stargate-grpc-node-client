@@ -1,10 +1,5 @@
 import { PromisifiedStargateClient } from "../util/promise";
-import {
-  toResultSet,
-  promisifyStargateClient,
-  toCQLTime,
-  toUUIDString,
-} from "../util";
+import { promisifyStargateClient, toCQLTime, toUUIDString } from "../util";
 import { StargateTableBasedToken } from "../auth";
 import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
 import {
@@ -12,7 +7,6 @@ import {
   BatchQuery,
   Collection,
   Inet,
-  Payload,
   Query,
   QueryParameters,
   ResultSet,
@@ -22,7 +16,6 @@ import {
 } from "../proto/query_pb";
 import * as grpc from "@grpc/grpc-js";
 import { StargateClient } from "../proto/stargate_grpc_pb";
-import { Any } from "google-protobuf/google/protobuf/any_pb";
 
 describe("Stargate gRPC client integration tests", () => {
   // Two minutes should be plenty to spin up the Stargate container
@@ -32,7 +25,7 @@ describe("Stargate gRPC client integration tests", () => {
   let grpcEndpoint: string;
 
   beforeAll(async () => {
-    container = await new GenericContainer("stargateio/stargate-3_11:v1.0.35")
+    container = await new GenericContainer("stargateio/stargate-3_11:v1.0.40")
       .withEnv("CLUSTER_NAME", "test")
       .withEnv("CLUSTER_VERSION", "3.11")
       .withEnv("DEVELOPER_MODE", "true")
@@ -77,7 +70,7 @@ describe("Stargate gRPC client integration tests", () => {
 
       const response = await promisifiedClient.executeQuery(query, metadata);
 
-      const resultSet = toResultSet(response) as ResultSet;
+      const resultSet = response.getResultSet() as ResultSet;
       expect(resultSet.getColumnsList().length).toEqual(18);
       const rowList = resultSet.getRowsList();
       expect(rowList.length).toEqual(1);
@@ -112,7 +105,7 @@ describe("Stargate gRPC client integration tests", () => {
 
       const response = await promisifiedClient.executeQuery(query, metadata);
 
-      const resultSet = toResultSet(response) as ResultSet;
+      const resultSet = response.getResultSet() as ResultSet;
       expect(resultSet.getColumnsList().length).toEqual(9);
 
       const firstColumnSpec = resultSet.getColumnsList()[0];
@@ -269,7 +262,7 @@ describe("Stargate gRPC client integration tests", () => {
         metadata
       );
 
-      const resultSet = toResultSet(selectAllResponse) as ResultSet;
+      const resultSet = selectAllResponse.getResultSet() as ResultSet;
 
       const firstRow = resultSet.getRowsList()[0];
 
@@ -431,9 +424,8 @@ describe("Stargate gRPC client integration tests", () => {
         metadata
       );
 
-      const selectAllWithIdResultSet = toResultSet(
-        selectAllWithIdResponse
-      ) as ResultSet;
+      const selectAllWithIdResultSet =
+        selectAllWithIdResponse.getResultSet() as ResultSet;
 
       const firstRowOfResult = selectAllWithIdResultSet.getRowsList()[0];
 
@@ -442,7 +434,7 @@ describe("Stargate gRPC client integration tests", () => {
       expect(newasciiValue.hasString()).toBe(true);
       expect(newasciiValue.getString()).toBe("echo");
     });
-    it.skip("Supports parameterized queries", async () => {
+    it("Supports parameterized queries", async () => {
       const tableBasedToken = new StargateTableBasedToken({
         authEndpoint,
         username: "cassandra",
@@ -464,29 +456,23 @@ describe("Stargate gRPC client integration tests", () => {
         "select * from system_schema.keyspaces where keyspace_name = ?"
       );
 
-      const payload = new Payload();
-      payload.setType(0);
-
       const keyspaceNameValue = new Value();
       keyspaceNameValue.setString("system");
 
       const queryValues = new Values();
       queryValues.setValuesList([keyspaceNameValue]);
 
-      const any = new Any();
-      any.setValue(queryValues.serializeBinary());
-      payload.setData(any);
+      query.setValues(queryValues);
 
       const queryParameters = new QueryParameters();
       queryParameters.setTracing(false);
       queryParameters.setSkipMetadata(false);
 
-      query.setValues(payload);
       query.setParameters(queryParameters);
 
       const response = await promisifiedClient.executeQuery(query, metadata);
 
-      const resultSet = toResultSet(response) as ResultSet;
+      const resultSet = response.getResultSet() as ResultSet;
 
       const rows = resultSet.getRowsList();
       expect(rows.length).toBe(1);
