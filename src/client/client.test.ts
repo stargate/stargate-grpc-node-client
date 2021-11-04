@@ -539,10 +539,19 @@ describe("Stargate gRPC client integration tests", () => {
 
       const query = new Query();
 
-      query.setCql(`SELECT * FROM ${KEYSPACE}.test`);
+      query.setCql(`SELECT value FROM ${KEYSPACE}.test`);
 
       const result = await promisifiedClient.executeQuery(query, metadata);
-      expect(result.hasResultSet()).toBe(true);
+
+      const resultSet = result.getResultSet() as ResultSet;
+
+      if (resultSet) {
+        const values = resultSet.getRowsList().map((row) => {
+          const value = row.getValuesList()[0].getInt();
+          return value;
+        });
+        expect(values).toEqual([1, 2]);
+      }
     });
   });
 });
