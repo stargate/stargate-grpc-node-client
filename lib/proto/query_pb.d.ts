@@ -2,7 +2,6 @@
 // file: query.proto
 
 import * as jspb from "google-protobuf";
-import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
 export class ConsistencyValue extends jspb.Message {
