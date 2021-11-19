@@ -1,5 +1,5 @@
 export { StargateBearerToken, StargateTableBasedToken } from "./auth";
-export { promisifyStargateClient } from "./util";
+export { promisifyStargateClient, toCQLTime, toUUIDString } from "./util";
 export { StargateClient } from "./proto/stargate_grpc_pb";
 export {
   AlreadyExists,
